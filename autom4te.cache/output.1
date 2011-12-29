@@ -3517,6 +3517,7 @@ fi
 # Checks for libraries.
 
 # Checks for header files.
+#AC_CHECK_HEADERS([unistd.h])
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -3915,18 +3916,20 @@ fi
 done
 
 
-for ac_header in unistd.h
+for ac_header in unistd.h proc/devname.h proc/wchan.h proc/procps.h proc/readproc.h proc/escape.h proc/sig.h proc/sysinfo.h proc/version.h proc/whattime.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "unistd.h" "ac_cv_header_unistd_h" "$ac_includes_default"
-if test "x$ac_cv_header_unistd_h" = x""yes; then :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-@%:@define HAVE_UNISTD_H 1
+@%:@define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
  
+else
+  as_fn_error $? "required header file missing" "$LINENO" 5 
 fi
 
 done
-
 
 # Checks for typedefs, structures, and compiler characteristics.
 
