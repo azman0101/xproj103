@@ -1,9 +1,25 @@
-AC_INIT(xproj103, 0.1, azman0101@hotmail.com)
-AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_SRCDIR(src/main.c)
+#                                               -*- Autoconf -*-C_PROG_CC
+# Process this file with autoconf to produce a configure script.
 
+AC_PREREQ([2.67])
+AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
+AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE
+#AC_CONFIG_HEADERS([config.h])
 
-AC_PROG_CXX
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_MAKE_SET
 
-AC_OUTPUT(Makefile src/Makefile)
+# Checks for libraries.
+
+# Checks for header files.
+AC_CHECK_HEADERS([unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+
+# Checks for library functions.
+
+AC_CONFIG_FILES([Makefile src/Makefile])
+AC_OUTPUT
+
