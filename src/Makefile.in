@@ -46,7 +46,7 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_xproj103_OBJECTS = main.$(OBJEXT)
 xproj103_OBJECTS = $(am_xproj103_OBJECTS)
-xproj103_LDADD = $(LDADD)
+xproj103_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -147,6 +147,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 xproj103_SOURCES = main.c
+xproj103_LDADD = -lproc
 all: all-am
 
 .SUFFIXES:

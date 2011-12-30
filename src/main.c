@@ -35,43 +35,12 @@
 #include "xproj103.h"
 
 
-double time_so_far()
-{
- struct timeval tp;
-
- if (gettimeofday(&tp, (struct timezone *) NULL) == -1)
-   perror("gettimeofday");
- return ((double) (tp.tv_sec)) +
-   (((double) tp.tv_usec) * 0.000001 );
-}
-
 
 int main()
 {
 
-long USER_HZ_UNIT=sysconf(_SC_CLK_TCK);
-printf("\n_SC_CLK_TCK:%ld\n", USER_HZ_UNIT);
-
-FILE *f1;
-	double ti, tf;
-	
-	char c[10];
-	int i1,i2,i3,i4,i5,i6;
-
-	ti = time_so_far();
-	f1 = fopen("/proc/stat", "r");
-	fscanf(f1, "%s\t%d\t%d\t%d\n", c, &i1, &i2, &i3);
-	fclose(f1);
-
-	usleep(1000000);
-
-	tf = time_so_far();
-	f1 = fopen("/proc/stat", "r");
-	fscanf(f1, "%s\t%d\t%d\t%d\n", c, &i4, &i5, &i6);
-	fclose(f1);
-
-	int t = (i4+i5+i6)-(i1+i2+i3);
-	printf("cpu usage: %.1f%%\n", (t / ((tf-ti) * 100)) * 100);
+new_format();
+sum_format();
 
 
 return 0;
