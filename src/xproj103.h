@@ -32,29 +32,43 @@ static int endofline(FILE *ifp, int c)
     return(eol);
 }
 
-// based on Fabian Frederick's /proc/slabinfo parser
+char *safe_strdup (const char *s)
+{
+	char *p;
+ 	size_t l;
 
-unsigned int getipinfo (struct data_struct **s_monitor){
-  FILE* fd;
-  int cSlab = 0;
-  buff[BUFFSIZE-1] = 0; 
-  fd = fopen("/proc/net/arp", "rb");
-  if(!fd) crash("/proc/net/arp");
-    endofline(fd,'\n');
-    while (fgets(buff,BUFFSIZE-1,fd)){
-    (*slab) = realloc(*slab, (cSlab+1)*sizeof(struct slab_cache));
-    sscanf(buff,  "%47s %u %u %u %u",  // allow 47; max seen is 24
-      (*slab)[cSlab].name,
-      &(*slab)[cSlab].active_objs,
-      &(*slab)[cSlab].num_objs,
-      &(*slab)[cSlab].objsize,
-      &(*slab)[cSlab].objperslab
-    ) ;
-    cSlab++;
-  }
-  fclose(fd);
-  return cSlab;
+ 	if (!s || !*s) return 0;
+ 	l = strlen (s) + 1;
+ 	p = (char *)malloc (l);
+ 	memcpy (p, s, l);
+ 	return (p);
 }
+
+char * ip_get()
+{
+    FILE *fd;
+    char ip_addr[16];
+    char * reply = NULL;
+
+    if (!(fd = fopen("/proc/net/arp", "r"))) {
+        return NULL;
+    }
+
+    /* Sauter la premiere ligne */
+     while (!feof(fd) && fgetc(fd) != '\n');
+
+	 /* Find ip, copy mac in reply */
+     reply = NULL;
+    while (!feof(fd) && (fscanf(fd, " %15[0-9.] %*s %*s %*s %*s %*s", ip_addr) == 2)) {
+				reply = safe_strdup(ip_addr);
+				break;
+    }
+
+    fclose(fd);
+
+    return reply;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////
 

@@ -40,8 +40,11 @@ int main()
 {
 
 new_format();
+char *ip;
 
+ip = ip_get();
 
+pause();
 
 return 0;
 
