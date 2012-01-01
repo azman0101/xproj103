@@ -1,5 +1,6 @@
 #define VMSTAT        0
 #define SLABSTAT      0x00000004
+#define BUFFSIZE      (64*1024) 
 
 static unsigned long dataUnit=1024;
 static char szDataUnit [16];
@@ -17,6 +18,53 @@ static int statMode=VMSTAT;
 static unsigned sleep_time = 1;
 static unsigned long num_updates;
 
+/////////////////////////////////////////////////////////////////////////////
+
+static int endofline(FILE *ifp, int c)
+{
+    int eol = (c == '\r' || c == '\n');
+    if (c == '\r')
+    {
+        c = getc(ifp);
+        if (c != '\n' && c != EOF)
+            ungetc(c, ifp);
+    }
+    return(eol);
+}
+
+// based on Fabian Frederick's /proc/slabinfo parser
+
+unsigned int getipinfo (struct data_struct **s_monitor){
+  FILE* fd;
+  int cSlab = 0;
+  buff[BUFFSIZE-1] = 0; 
+  fd = fopen("/proc/net/arp", "rb");
+  if(!fd) crash("/proc/net/arp");
+    endofline(fd,'\n');
+    while (fgets(buff,BUFFSIZE-1,fd)){
+    (*slab) = realloc(*slab, (cSlab+1)*sizeof(struct slab_cache));
+    sscanf(buff,  "%47s %u %u %u %u",  // allow 47; max seen is 24
+      (*slab)[cSlab].name,
+      &(*slab)[cSlab].active_objs,
+      &(*slab)[cSlab].num_objs,
+      &(*slab)[cSlab].objsize,
+      &(*slab)[cSlab].objperslab
+    ) ;
+    cSlab++;
+  }
+  fclose(fd);
+  return cSlab;
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+typedef struct data_struct {
+	char IPaddr [16];
+	unsigned long free_mem;
+	unsigned long total_mem;  // index into a struct disk_stat array
+	unsigned long long cpu_use;
+}data_struct;
+
 ////////////////////////////////////////////////////////////////////////////
 
 static unsigned long unitConvert(unsigned int size){
@@ -30,9 +78,9 @@ static unsigned long unitConvert(unsigned int size){
 static void new_header(void){
   printf("procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----\n");
   printf(
-    "%2s %2s %6s %6s %6s %6s %4s %4s %5s %5s %4s %4s %2s %2s %2s %2s\n",
+    "%2s %2s %6s %6s %6s %6s %6s %4s %4s %5s %5s %4s %4s %2s %2s %2s %2s\n",
     "r","b",
-    "swpd", "free", a_option?"inact":"buff", a_option?"active":"cache",
+    "swpd", "free", "tot", a_option?"inact":"buff", a_option?"active":"cache",
     "si","so",
     "bi","bo",
     "in","cs",
@@ -43,7 +91,7 @@ static void new_header(void){
 ////////////////////////////////////////////////////////////////////////////
 
 static void new_format(void) {
-  const char format[]="%2u %2u %6lu %6lu %6lu %6lu %4u %4u %5u %5u %4u %4u %2u %2u %2u %2u\n";
+  const char format[]="%2u %2u %6lu %6lu %6lu %6lu %6lu %4u %4u %5u %5u %4u %4u %2u %2u %2u %2u\n";
   unsigned int tog=0; /* toggle switch for cleaner code */
   unsigned int i;
   unsigned int hz = Hertz;
@@ -55,7 +103,7 @@ static void new_format(void) {
   unsigned int sleep_half; 
   unsigned long kb_per_page = sysconf(_SC_PAGESIZE) / 1024ul;
   int debt = 0;  // handle idle ticks running backwards
-
+  data_struct monitoring;
   sleep_half=(sleep_time/2);
   new_header();
   meminfo();
@@ -75,7 +123,7 @@ static void new_format(void) {
   divo2= Div/2UL;
   printf(format,
 	 running, blocked,
-	 unitConvert(kb_swap_used), unitConvert(kb_main_free),
+	 unitConvert(kb_swap_used), unitConvert(kb_main_free),unitConvert(kb_main_total),
 	 unitConvert(a_option?kb_inactive:kb_main_buffers),
 	 unitConvert(a_option?kb_active:kb_main_cached),
 	 (unsigned)( (*pswpin  * unitConvert(kb_per_page) * hz + divo2) / Div ),
@@ -90,6 +138,7 @@ static void new_format(void) {
 	 (unsigned)( (100*diow                    + divo2) / Div ) /* ,
 	 (unsigned)( (100*dstl                    + divo2) / Div ) */
   );
+  monitoring.cpu_use = duse;
 
   for(i=1;i<num_updates;i++) { /* \\\\\\\\\\\\\\\\\\\\ main loop ////////////////// */
     sleep(sleep_time);
@@ -124,7 +173,7 @@ static void new_format(void) {
     divo2= Div/2UL;
     printf(format,
            running, blocked,
-	   unitConvert(kb_swap_used),unitConvert(kb_main_free),
+	   unitConvert(kb_swap_used),unitConvert(kb_main_free),unitConvert(kb_main_total),
 	   unitConvert(a_option?kb_inactive:kb_main_buffers),
 	   unitConvert(a_option?kb_active:kb_main_cached),
 	   (unsigned)( ( (pswpin [tog] - pswpin [!tog])*unitConvert(kb_per_page)+sleep_half )/sleep_time ), /*si*/

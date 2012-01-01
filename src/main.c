@@ -40,7 +40,7 @@ int main()
 {
 
 new_format();
-sum_format();
+
 
 
 return 0;
