@@ -57,10 +57,12 @@ char * ip_get()
         unsigned long flags;
         
         /* skip header line */
+        endofline(fp, '\n');
         ptr = fgets(buf, sizeof(buf), fp);
         while ((ptr = fgets(buf, sizeof(buf), fp)))
         {
-            ip_addr = ptr;
+            strncpy((char*)ip_addr,ptr,sizeof(ip_addr));
+            //ip_addr = ptr;
             while (*ptr && !isspace(*ptr)) ptr++;
             strtoul(ptr + 1, &ptr, 16); /* hw type (skip) */
             flags = strtoul(ptr + 1, &ptr, 16);
@@ -80,7 +82,7 @@ char * ip_get()
         }
         fclose(fp);
     }
-    else ret = ERROR_NOT_SUPPORTED;
+    else return NULL;
 
 
        return reply;

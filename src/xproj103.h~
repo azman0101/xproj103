@@ -60,7 +60,7 @@ char * ip_get()
         ptr = fgets(buf, sizeof(buf), fp);
         while ((ptr = fgets(buf, sizeof(buf), fp)))
         {
-            ip_addr = ptr;
+            //ip_addr = ptr;
             while (*ptr && !isspace(*ptr)) ptr++;
             strtoul(ptr + 1, &ptr, 16); /* hw type (skip) */
             flags = strtoul(ptr + 1, &ptr, 16);
@@ -75,8 +75,8 @@ char * ip_get()
             while (*ptr && !isspace(*ptr)) ptr++;   /* mask (skip) */
             while (*ptr && isspace(*ptr)) ptr++;
             
-            if (!(table = append_ipnet_row( heap, flags, table, &count, &row )))
-                break;
+         //   if (!(table = append_ipnet_row( heap, flags, table, &count, &row )))
+            //    break;
         }
         fclose(fp);
     }
