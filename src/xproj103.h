@@ -45,10 +45,11 @@ char *safe_strdup (const char *s)
 }
 
 /* Code inspiré de la fonction de WineHQ AllocateAndGetIpNetTableFromStack */
-char * ip_get()
+char * ip_get(char* if_name)
 {
     FILE *fp;
     char ip_addr[16];
+   // char if_name[6];
     char * reply = NULL;
 
     if ((fp = fopen("/proc/net/arp", "r")))
@@ -76,6 +77,7 @@ char * ip_get()
             while (*ptr && isspace(*ptr)) ptr++;
             while (*ptr && !isspace(*ptr)) ptr++;   /* mask (skip) */
             while (*ptr && isspace(*ptr)) ptr++;
+            strncpy(if_name,ptr,6);
             
          //   if (!(table = append_ipnet_row( heap, flags, table, &count, &row )))
             //    break;

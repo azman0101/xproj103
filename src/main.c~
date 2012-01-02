@@ -43,7 +43,7 @@ new_format();
 char *ip;
 char if_name[6];
 
-ip = ip_get(&if_name);
+ip = ip_get(if_name);
 
 pause();
 
