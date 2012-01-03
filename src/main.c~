@@ -40,13 +40,16 @@ int main()
 {
 
 new_format();
-char *ip;
-char if_name[6];
 
-ip = ip_get(if_name);
+
+data_struct** ipaddress;
+
+memset(ipaddress, 0 ,sizeof(ipaddress));
+
+arp_get(ipaddress);
 
 pause();
 
-return 0;
+exit(0);
 
 }

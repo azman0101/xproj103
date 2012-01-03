@@ -32,6 +32,18 @@ static int endofline(FILE *ifp, int c)
     return(eol);
 }
 
+///////////////////////////////////////////////////////////////////////////
+
+typedef struct data_struct {
+	char ip[16];
+	char name[6];
+	unsigned long free_mem;
+	unsigned long total_mem;  // index into a struct disk_stat array
+	unsigned long long cpu_use;
+}data_struct;
+
+////////////////////////////////////////////////////////////////////////////
+
 char *safe_strdup (const char *s)
 {
 	char *p;
@@ -90,17 +102,34 @@ char * ip_get(char* if_name)
        return reply;
 }
 
+char* arp_get(data_struct **ip_array)
+{
+  FILE *proc;
+  char if_ip[16];
+  char if_name[6];
+  char * reply = NULL;
+  int i = 0;
+  
+  if (!(proc = fopen("/home/azman/arp", "r"))) {
+    return NULL;
+  }
 
-///////////////////////////////////////////////////////////////////////////
+  fscanf(proc, "%*s %*s %*s %*s %*s %*s %*s %*s %*s");
+  
+  while(!feof(proc)) {
+    fscanf(proc, "%15s %*s %*s %*s %*s %6s", if_ip, if_name);
+    // tester si ip est une ip et
+    ip_array[i] = (data_struct*)malloc(sizeof(data_struct));
+    ip_array[i]->ip = (char[16])if_ip;
+    ip_array[i]->name = (char[6])if_name;
+    
+  }
+ fclose(proc);
 
-typedef struct data_struct {
-	char IPaddr [16];
-	unsigned long free_mem;
-	unsigned long total_mem;  // index into a struct disk_stat array
-	unsigned long long cpu_use;
-}data_struct;
+ return NULL;
+}
 
-////////////////////////////////////////////////////////////////////////////
+
 
 static unsigned long unitConvert(unsigned int size){
  float cvSize;
