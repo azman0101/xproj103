@@ -102,7 +102,7 @@ AMTAR = ${SHELL} /home/azman/xproj103/missing --run tar
 AUTOCONF = ${SHELL} /home/azman/xproj103/missing --run autoconf
 AUTOHEADER = ${SHELL} /home/azman/xproj103/missing --run autoheader
 AUTOMAKE = ${SHELL} /home/azman/xproj103/missing --run automake-1.11
-AWK = mawk
+AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
