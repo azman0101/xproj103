@@ -21,6 +21,14 @@
 #include <string.h>
 #include <errno.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <netdb.h>
+
+#include <ifaddrs.h>
+
 
 #include "proc/devname.h"
 #include "proc/wchan.h"
@@ -35,20 +43,19 @@
 #include "xproj103.h"
 
 
-
 int main()
 {
 
 new_format();
-
-
+    
 data_struct** ipaddress;
 
-memset(ipaddress, 0 ,sizeof(ipaddress));
+//memset(&ipaddress, 0 ,sizeof(ipaddress));
+ipaddress = malloc(sizeof(data_struct));
+  
+ip_get(ipaddress);
+ printf("\taddress: <%s>\n interface: %s\n", ipaddress[0]->ip, ipaddress[0]->name);
 
-arp_get(ipaddress);
-
-pause();
 
 exit(0);
 
