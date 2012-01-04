@@ -46,15 +46,18 @@
 int main()
 {
 
-new_format();
     
-data_struct** ipaddress;
-
+struct_if** ipaddress;
+struct_cpu* cpuinfo;
 //memset(&ipaddress, 0 ,sizeof(ipaddress));
-ipaddress = malloc(sizeof(data_struct));
+ipaddress = malloc(sizeof(struct_if));
+cpuinfo = malloc(sizeof(struct_cpu));
   
 ip_get(ipaddress);
  printf("\taddress: <%s>\n interface: %s\n", ipaddress[0]->ip, ipaddress[0]->name);
+
+new_format(cpuinfo);
+
 
 //TODO: fonction free pour la structure data_struct
 

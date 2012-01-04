@@ -16,7 +16,7 @@ static unsigned int moreheaders=TRUE;
 static int a_option; /* "-a" means "show active/inactive" */
 static int statMode=VMSTAT;
 static unsigned sleep_time = 1;
-static unsigned long num_updates;
+static unsigned long num_updates = 10;
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -34,13 +34,19 @@ static int endofline(FILE *ifp, int c)
 
 ///////////////////////////////////////////////////////////////////////////
 
-typedef struct data_struct {
+typedef struct struct_if {
 	char ip[NI_MAXHOST];
 	char *name;
+}struct_if;
+
+////////////////////////////////////////////////////////////////////////////
+
+
+typedef struct struct_cpu {
 	unsigned long free_mem;
 	unsigned long total_mem;  // index into a struct disk_stat array
-	unsigned long long cpu_use;
-}data_struct;
+	jiff cpu_use;
+}struct_cpu;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -57,13 +63,13 @@ char *safe_strdup (const char *s)
 }
 
 /* Code inspiré de l'exemple du man getifaddrs */
-data_struct** ip_get(data_struct **ip_array)
+struct_if** ip_get(struct_if **ip_array)
 {
     struct ifaddrs *ifaddr, *ifa;
     int family, s,i;
     char host[NI_MAXHOST];
     if (ip_array == NULL)
-      ip_array = malloc(sizeof(data_struct));
+      ip_array = malloc(sizeof(struct_if));
     
     if (getifaddrs(&ifaddr) == -1) {
         perror("getifaddrs");
@@ -100,7 +106,7 @@ data_struct** ip_get(data_struct **ip_array)
                 exit(EXIT_FAILURE);
             }
             printf("\taddress: <%s>\n", host);
-            ip_array[i] = calloc(1, sizeof(data_struct));
+            ip_array[i] = calloc(1, sizeof(struct_if));
             
             if ( ip_array[i] == NULL) {
                 perror("ip_array memory allocation");
@@ -108,9 +114,9 @@ data_struct** ip_get(data_struct **ip_array)
             }
 	    
             strncpy(ip_array[i]->ip,host,sizeof(host));
-        
-	    // strncpy((char*)ip_array->name,ifa->ifa_name,sizeof(ifa->ifa_name));
-            ip_array[i]->name = ifa->ifa_name;
+	    ip_array[i]->name = (char*)malloc(sizeof(ifa->ifa_name)+1);
+	    strncpy(ip_array[i]->name,ifa->ifa_name,sizeof(ifa->ifa_name));
+           // ip_array[i]->name = ifa->ifa_name;
 	    i++;
         }
     }
@@ -119,6 +125,7 @@ data_struct** ip_get(data_struct **ip_array)
     return ip_array;
 }
 
+/*
 char* arp_get(data_struct **ip_array)
 {
     FILE *proc;
@@ -145,7 +152,7 @@ char* arp_get(data_struct **ip_array)
     
     return NULL;
 }
-
+*/
 
 
 static unsigned long unitConvert(unsigned int size){
@@ -154,39 +161,30 @@ static unsigned long unitConvert(unsigned int size){
     return ((unsigned long) cvSize);
 }
 
-////////////////////////////////////////////////////////////////////////////
 
-static void new_header(void){
-    printf("procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----\n");
-    printf(
-           "%2s %2s %6s %6s %6s %6s %6s %4s %4s %5s %5s %4s %4s %2s %2s %2s %2s\n",
-           "r","b",
-           "swpd", "free", "tot", a_option?"inact":"buff", a_option?"active":"cache",
-           "si","so",
-           "bi","bo",
-           "in","cs",
-           "us","sy","id","wa"
-           );
-}
 
 ////////////////////////////////////////////////////////////////////////////
 
-static void new_format(void) {
+struct_cpu * new_format(struct_cpu *cpu_array) {
     const char format[]="%2u %2u %6lu %6lu %6lu %6lu %6lu %4u %4u %5u %5u %4u %4u %2u %2u %2u %2u\n";
     unsigned int tog=0; /* toggle switch for cleaner code */
-    unsigned int i;
     unsigned int hz = Hertz;
     unsigned int running,blocked,dummy_1,dummy_2;
     jiff cpu_use[2], cpu_nic[2], cpu_sys[2], cpu_idl[2], cpu_iow[2], cpu_xxx[2], cpu_yyy[2], cpu_zzz[2];
-    jiff duse, dsys, didl, diow, dstl, Div, divo2;
+    jiff duse, dsys, didl, diow, dstl, Div, divo2,avg_cpu = 0;
     unsigned long pgpgin[2], pgpgout[2], pswpin[2], pswpout[2];
     unsigned int intr[2], ctxt[2];
     unsigned int sleep_half; 
     unsigned long kb_per_page = sysconf(_SC_PAGESIZE) / 1024ul;
-    int debt = 0;  // handle idle ticks running backwards
-    data_struct monitoring;
+    int i, debt = 0;  // handle idle ticks running backwards
+    int user_hz = sysconf(_SC_CLK_TCK);
+    
+    if (cpu_array == NULL)
+      cpu_array = malloc(sizeof(struct_cpu));
+    
+    
     sleep_half=(sleep_time/2);
-    new_header();
+    
     meminfo();
     
     getstat(cpu_use,cpu_nic,cpu_sys,cpu_idl,cpu_iow,cpu_xxx,cpu_yyy,cpu_zzz,
@@ -202,28 +200,20 @@ static void new_format(void) {
     dstl= *cpu_zzz;
     Div= duse+dsys+didl+diow+dstl;
     divo2= Div/2UL;
-    printf(format,
-           running, blocked,
-           unitConvert(kb_swap_used), unitConvert(kb_main_free),unitConvert(kb_main_total),
-           unitConvert(a_option?kb_inactive:kb_main_buffers),
-           unitConvert(a_option?kb_active:kb_main_cached),
-           (unsigned)( (*pswpin  * unitConvert(kb_per_page) * hz + divo2) / Div ),
-           (unsigned)( (*pswpout * unitConvert(kb_per_page) * hz + divo2) / Div ),
-           (unsigned)( (*pgpgin                * hz + divo2) / Div ),
-           (unsigned)( (*pgpgout               * hz + divo2) / Div ),
-           (unsigned)( (*intr                  * hz + divo2) / Div ),
-           (unsigned)( (*ctxt                  * hz + divo2) / Div ),
-           (unsigned)( (100*duse                    + divo2) / Div ),
-           (unsigned)( (100*dsys                    + divo2) / Div ),
-           (unsigned)( (100*didl                    + divo2) / Div ),
-           (unsigned)( (100*diow                    + divo2) / Div ) /* ,
-                                                                      (unsigned)( (100*dstl                    + divo2) / Div ) */
-           );
-    monitoring.cpu_use = duse;
+   
+            
+    if ( cpu_array == NULL) {
+      perror("cpu_array memory allocation");
+      exit(EXIT_FAILURE);
+    }
+	    
+   
+    cpu_array->free_mem = kb_main_free;
+    cpu_array->total_mem = kb_main_total;
     
     for(i=1;i<num_updates;i++) { /* \\\\\\\\\\\\\\\\\\\\ main loop ////////////////// */
         sleep(sleep_time);
-        if (moreheaders && ((i%height)==0)) new_header();
+        //if (moreheaders && ((i%height)==0)) new_header();
         tog= !tog;
         
         meminfo();
@@ -252,6 +242,8 @@ static void new_format(void) {
         
         Div= duse+dsys+didl+diow+dstl;
         divo2= Div/2UL;
+	
+	avg_cpu += (100*duse+divo2)/Div;
         printf(format,
                running, blocked,
                unitConvert(kb_swap_used),unitConvert(kb_main_free),unitConvert(kb_main_total),
@@ -270,50 +262,10 @@ static void new_format(void) {
                                                   (unsigned)( (100*dstl+divo2)/Div )  //st  */
                );
     }
+  cpu_array->cpu_use = avg_cpu/num_updates;
+  printf("CPU Usage: %llu", cpu_array->cpu_use);
+
+  return cpu_array;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-
-
-static void sum_format(void) {
-    unsigned int running, blocked, btime, processes;
-    jiff cpu_use, cpu_nic, cpu_sys, cpu_idl, cpu_iow, cpu_xxx, cpu_yyy, cpu_zzz;
-    unsigned long pgpgin, pgpgout, pswpin, pswpout;
-    unsigned int intr, ctxt;
-    
-    meminfo();
-    
-    getstat(&cpu_use, &cpu_nic, &cpu_sys, &cpu_idl,
-            &cpu_iow, &cpu_xxx, &cpu_yyy, &cpu_zzz,
-            &pgpgin, &pgpgout, &pswpin, &pswpout,
-            &intr, &ctxt,
-            &running, &blocked,
-            &btime, &processes);
-    
-    printf("%13lu %s total memory\n", unitConvert(kb_main_total),szDataUnit);
-    printf("%13lu %s used memory\n", unitConvert(kb_main_used),szDataUnit);
-    printf("%13lu %s active memory\n", unitConvert(kb_active),szDataUnit);
-    printf("%13lu %s inactive memory\n", unitConvert(kb_inactive),szDataUnit);
-    printf("%13lu %s free memory\n", unitConvert(kb_main_free),szDataUnit);
-    printf("%13lu %s buffer memory\n", unitConvert(kb_main_buffers),szDataUnit);
-    printf("%13lu %s swap cache\n", unitConvert(kb_main_cached),szDataUnit);
-    printf("%13Lu non-nice user cpu ticks\n", cpu_use);
-    printf("%13Lu nice user cpu ticks\n", cpu_nic);
-    printf("%13Lu system cpu ticks\n", cpu_sys);
-    printf("%13Lu idle cpu ticks\n", cpu_idl);
-    printf("%13Lu IO-wait cpu ticks\n", cpu_iow);
-    printf("%13Lu IRQ cpu ticks\n", cpu_xxx);
-    printf("%13Lu softirq cpu ticks\n", cpu_yyy);
-    printf("%13Lu stolen cpu ticks\n", cpu_zzz);
-    printf("%13lu pages paged in\n", pgpgin);
-    printf("%13lu pages paged out\n", pgpgout);
-    printf("%13lu pages swapped in\n", pswpin);
-    printf("%13lu pages swapped out\n", pswpout);
-    printf("%13u interrupts\n", intr);
-    printf("%13u CPU context switches\n", ctxt);
-    printf("%13u boot time\n", btime);
-    printf("%13u forks\n", processes);
-}
-
-////////////////////////////////////////////////////////////////////////////
-
