@@ -8,8 +8,9 @@ Projet test de monitoring (CPU, IP...) et de centralisation serveur.
 Pour récupérer un version du projet
 -----------------------------------
 
-Au 07/01/2012, la branch active du projet se nomme PC
-
+```
+$ git clone git@github.com:azman0101/xproj103.git
+```
 Usage
 -----
 
