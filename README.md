@@ -9,10 +9,10 @@ Usage
 -----
 
 ```bash
-# cd xproj103
-# make clean
-# make
-# ./src/xproj103 
+$ cd xproj103
+$ make clean
+$ make
+$ ./src/xproj103 
 ```
 
 
