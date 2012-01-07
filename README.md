@@ -5,6 +5,11 @@ Projet test de monitoring (CPU, IP...) et de centralisation serveur.
 
 * \#Num: #1
 
+Pour récupérer un version du projet
+-----------------------------------
+
+Au 07/01/2012, la branch active du projet se nomme PC
+
 Usage
 -----
 
@@ -20,8 +25,6 @@ $ ./src/xproj103
 Versioning
 ----------
 
-Pour récupérer un version du projet
------------------------------------
 
 
 Releases will be numbered with the follow format:
