@@ -11,7 +11,7 @@ Usage
 
 
 
-``` langage c
+``` 
 <link rel="stylesheet" type="text/css" href="bootstrap.css">
 ```
 
