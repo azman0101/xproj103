@@ -8,7 +8,7 @@ Projet test de monitoring (CPU, IP...) et de centralisation serveur.
 Usage
 -----
 
-```
+```bash
 # cd xproj103
 # make clean
 # make
