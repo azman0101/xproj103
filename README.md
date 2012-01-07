@@ -1,7 +1,7 @@
 PROJET 103
 =================
 
-Projet test de monitoring (CPU, IP...) et de reporting au serveur.
+Projet test de monitoring (CPU, IP...) et de centralisation serveur.
 
 * \#Num: #1
 
@@ -10,13 +10,8 @@ Usage
 
 
 
-``` html
-<link rel="stylesheet/less" type="text/css" href="lib/bootstrap.less">
-<script src="less.js" type="text/javascript"></script>
-```
 
-
-``` html
+``` langage c
 <link rel="stylesheet" type="text/css" href="bootstrap.css">
 ```
 
@@ -24,6 +19,9 @@ Usage
 
 Versioning
 ----------
+
+Pour récupérer un version du projet
+-----------------------------------
 
 
 Releases will be numbered with the follow format:
