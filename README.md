@@ -35,16 +35,7 @@ Releases will be numbered with the follow format:
 Bug tracker
 -----------
 
-Un bug ? Ceci est un projet de cours... c'est pour apprendre :) !
-
-
-+ **build** - `make build`
-This will run the less compiler on the bootstrap lib and generate a bootstrap.css and bootstrap.min.css file.
-The lessc compiler is required for this command to run.
-
-+ **watch** - `make watch`
-This is a convenience method for watching your less files and automatically building them whenever you save.
-Watchr is required for this command to run.
+Un bug ? Ceci est un projet de cours sans autre interet que mon apprentissage :) !
 
 
 Authors
