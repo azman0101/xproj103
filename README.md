@@ -3,8 +3,6 @@ PROJET 103
 
 Projet test de monitoring (CPU, IP...) et de centralisation serveur.
 
-* \#Num: #1
-
 Pour récupérer un version du projet
 -----------------------------------
 
@@ -26,16 +24,10 @@ $ ./src/xproj103
 Versioning
 ----------
 
-
-
 Releases will be numbered with the follow format:
 
-`<major>.<minor>.<patch>`
+`<major>.<minor>`
 
-And constructed with the following guidelines:
-
-* Breaking backwards compatibility bumps the major
-* New additions without breaking backwards compatibility bumps the minor
 * Bug fixes and misc changes bump the patch
 
 
@@ -43,19 +35,7 @@ And constructed with the following guidelines:
 Bug tracker
 -----------
 
-Have a bug? Please create an issue here on GitHub!
-
-
-Twitter account
----------------
-
-Mailing list
-------------
-
-
-
-Developers
-----------
+Un bug ? Ceci est un projet de cours... c'est pour apprendre :) !
 
 
 + **build** - `make build`
