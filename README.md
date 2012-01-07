@@ -8,11 +8,11 @@ Projet test de monitoring (CPU, IP...) et de centralisation serveur.
 Usage
 -----
 
-
-
-
-``` 
-<link rel="stylesheet" type="text/css" href="bootstrap.css">
+```
+# cd xproj103
+# make clean
+# make
+# ./src/xproj103 
 ```
 
 
