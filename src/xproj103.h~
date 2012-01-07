@@ -1,6 +1,7 @@
 #define VMSTAT        0
 #define SLABSTAT      0x00000004
 #define BUFFSIZE      (64*1024) 
+#include <string.h>
 
 static unsigned long dataUnit=1024;
 static char szDataUnit [16];
@@ -88,15 +89,11 @@ struct_if** ip_get(struct_if **ip_array)
         /* Display interface name and family (including symbolic
          form of the latter for the common families) */
         
-        printf("%s  address family: %d%s\n",
-               ifa->ifa_name, family,
-               (family == AF_PACKET) ? " (AF_PACKET)" :
-               (family == AF_INET) ?   " (AF_INET)" :
-               (family == AF_INET6) ?  " (AF_INET6)" : "");
+      //  printf("%s  address family: %d%s\n",,ifa->ifa_name, family, (family == AF_PACKET) ? " (AF_PACKET)" : (family == AF_INET) ?   " (AF_INET)" : (family == AF_INET6) ?  " (AF_INET6)" : "");
         
         /* For an AF_INET* interface address, display the address */
         
-        if (family == AF_INET || family == AF_INET6) {
+        if (family == AF_INET ) { // supression des address ipv6 || family == AF_INET6
             s = getnameinfo(ifa->ifa_addr,
                             (family == AF_INET) ? sizeof(struct sockaddr_in) :
                             sizeof(struct sockaddr_in6),
@@ -105,19 +102,29 @@ struct_if** ip_get(struct_if **ip_array)
                 printf("getnameinfo() failed: %s\n", gai_strerror(s));
                 exit(EXIT_FAILURE);
             }
-            printf("\taddress: <%s>\n", host);
-            ip_array[i] = calloc(1, sizeof(struct_if));
             
-            if ( ip_array[i] == NULL) {
-                perror("ip_array memory allocation");
-                exit(EXIT_FAILURE);
-            }
-	    
-            strncpy(ip_array[i]->ip,host,sizeof(host));
-	    ip_array[i]->name = (char*)malloc(sizeof(ifa->ifa_name)+1);
-	    strncpy(ip_array[i]->name,ifa->ifa_name,sizeof(ifa->ifa_name));
-           // ip_array[i]->name = ifa->ifa_name;
-	    i++;
+	    if (strcmp(ifa->ifa_name, "lo") ) 
+	    {
+	        //printf("\t<%s>\n", host);
+		ip_array[i] = calloc(1, sizeof(struct_if));
+		
+		if ( ip_array[i] == NULL) {
+		    perror("ip_array memory allocation");
+		    exit(EXIT_FAILURE);
+		}
+		
+		strncpy(ip_array[i]->ip,host,sizeof(host));
+		ip_array[i]->name = (char*)malloc(sizeof(ifa->ifa_name)+1);
+		
+		if ( ip_array[i]->name == NULL) {
+		    perror("ip_array->name memory allocation");
+		    exit(EXIT_FAILURE);
+		}
+		
+		strncpy(ip_array[i]->name,ifa->ifa_name,sizeof(ifa->ifa_name));
+	      // ip_array[i]->name = ifa->ifa_name;
+		i++;
+	    }
         }
     }
     //printf("\taddress: <%s>\n interface: %s\n", ip_array[0]->ip, ip_array[0]->name);
@@ -125,35 +132,7 @@ struct_if** ip_get(struct_if **ip_array)
     return ip_array;
 }
 
-/*
-char* arp_get(data_struct **ip_array)
-{
-    FILE *proc;
-    char* if_ip;
-    char* if_name;
-    char* reply = NULL;
-    int i = 0;
-    i++;
-    if (!(proc = fopen("/home/azman/arp", "r"))) {
-        return NULL;
-    }
-    
-    fscanf(proc, "%*s %*s %*s %*s %*s %*s %*s %*s %*s");
-    
-    while(!feof(proc)) {
-        fscanf(proc, "%15s %*s %*s %*s %*s %6s", if_ip, if_name);
-        // tester si ip est une ip et
-        ip_array[i] = (data_struct*)malloc(sizeof(data_struct));
-      //  ip_array[i]->ip = if_ip;
-      //  ip_array[i]->name = if_name;
-        
-    }
-    fclose(proc);
-    
-    return NULL;
-}
-*/
-
+////////////////////////////////////////////////////////////////////////////
 
 static unsigned long unitConvert(unsigned int size){
     float cvSize;
@@ -162,11 +141,11 @@ static unsigned long unitConvert(unsigned int size){
 }
 
 
-
+// Code inspiré de l'exemple du vmstat.c 
 ////////////////////////////////////////////////////////////////////////////
 
-struct_cpu * new_format(struct_cpu *cpu_array) {
-    const char format[]="%2u %2u %6lu %6lu %6lu %6lu %6lu %4u %4u %5u %5u %4u %4u %2u %2u %2u %2u\n";
+struct_cpu * cpu_get(struct_cpu *cpu_array) {
+    const char format[]="%6lu %6lu %2u\n";
     unsigned int tog=0; /* toggle switch for cleaner code */
     unsigned int hz = Hertz;
     unsigned int running,blocked,dummy_1,dummy_2;
@@ -245,25 +224,12 @@ struct_cpu * new_format(struct_cpu *cpu_array) {
 	
 	avg_cpu += (100*duse+divo2)/Div;
         printf(format,
-               running, blocked,
-               unitConvert(kb_swap_used),unitConvert(kb_main_free),unitConvert(kb_main_total),
-               unitConvert(a_option?kb_inactive:kb_main_buffers),
-               unitConvert(a_option?kb_active:kb_main_cached),
-               (unsigned)( ( (pswpin [tog] - pswpin [!tog])*unitConvert(kb_per_page)+sleep_half )/sleep_time ), /*si*/
-               (unsigned)( ( (pswpout[tog] - pswpout[!tog])*unitConvert(kb_per_page)+sleep_half )/sleep_time ), /*so*/
-               (unsigned)( (  pgpgin [tog] - pgpgin [!tog]             +sleep_half )/sleep_time ), /*bi*/
-               (unsigned)( (  pgpgout[tog] - pgpgout[!tog]             +sleep_half )/sleep_time ), /*bo*/
-               (unsigned)( (  intr   [tog] - intr   [!tog]             +sleep_half )/sleep_time ), /*in*/
-               (unsigned)( (  ctxt   [tog] - ctxt   [!tog]             +sleep_half )/sleep_time ), /*cs*/
-               (unsigned)( (100*duse+divo2)/Div ), /*us*/
-               (unsigned)( (100*dsys+divo2)/Div ), /*sy*/
-               (unsigned)( (100*didl+divo2)/Div ), /*id*/
-               (unsigned)( (100*diow+divo2)/Div )/*, //wa
-                                                  (unsigned)( (100*dstl+divo2)/Div )  //st  */
+               unitConvert(kb_main_free),unitConvert(kb_main_total),
+               (unsigned)( (100*duse+divo2)/Div ) /*us*/
                );
     }
   cpu_array->cpu_use = avg_cpu/num_updates;
-  printf("CPU Usage: %llu", cpu_array->cpu_use);
+  
 
   return cpu_array;
 }

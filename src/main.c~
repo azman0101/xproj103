@@ -26,9 +26,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <netdb.h>
-
 #include <ifaddrs.h>
-
 
 #include "proc/devname.h"
 #include "proc/wchan.h"
@@ -45,22 +43,19 @@
 
 int main()
 {
-
-new_format();
     
 struct_if** ipaddress;
 struct_cpu* cpuinfo;
-//memset(&ipaddress, 0 ,sizeof(ipaddress));
+
 ipaddress = malloc(sizeof(struct_if));
 cpuinfo = malloc(sizeof(struct_cpu));
-  
+
 ip_get(ipaddress);
- printf("\taddress: <%s>\n interface: %s\n", ipaddress[0]->ip, ipaddress[0]->name);
+printf("<%s>  %s\n", ipaddress[0]->ip, ipaddress[0]->name);
 
-new_format(cpuinfo);
+cpu_get(cpuinfo);
 
-
-//TODO: fonction free pour la structure data_struct
+//TODO: fonction free pour les structures struct_if struct_cpu
 
 exit(0);
 
