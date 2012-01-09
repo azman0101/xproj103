@@ -45,7 +45,7 @@ typedef struct struct_if {
 
 typedef struct struct_cpu {
 	unsigned long free_mem;
-	unsigned long total_mem;  // index into a struct disk_stat array
+	unsigned long total_mem;
 	jiff cpu_use;
 }struct_cpu;
 
@@ -93,7 +93,7 @@ struct_if** ip_get(struct_if **ip_array)
         
         /* For an AF_INET* interface address, display the address */
         
-        if (family == AF_INET ) { // supression des address ipv6 || family == AF_INET6
+        if (family == AF_INET || family == AF_INET6) { // supression des address ipv6 || family == AF_INET6
             s = getnameinfo(ifa->ifa_addr,
                             (family == AF_INET) ? sizeof(struct sockaddr_in) :
                             sizeof(struct sockaddr_in6),
@@ -233,3 +233,22 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
+
+int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host)
+{
+  int sock;
+  struct hostent *hostinfo = NULL;
+  struct sockaddr_in sin = { 0 }; 
+  sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
+  if (sock == -1)
+  {
+	perror("socket()");
+	exit(errno);
+  } 
+  
+  sin.sin_family = AF_INET;
+  sin.sin_addr.s_addr = inet_addr(host);
+  if (sin.sin_addr.s_addr == -1) { perror("inet_addr"); exit(errno); }
+  
+  return 0;
+}

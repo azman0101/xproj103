@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <string.h>
 #include <errno.h>
+#include <getopt.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -41,21 +42,106 @@
 #include "xproj103.h"
 
 
-int main()
+int main(int argc,char* argv[])
 {
     
+const char format[]="%6lu %6lu %2u\n";
 struct_if** ipaddress;
 struct_cpu* cpuinfo;
-
+int nb,i;
 ipaddress = malloc(sizeof(struct_if));
 cpuinfo = malloc(sizeof(struct_cpu));
+char ch;                   /* service variables */
+int long_opt_index = 0;
+int longval, other;
+char *host_or_ip;
+char *my_argument;
 
+struct option long_options[] = {        /* tableau long options. sensible à la casse */
+        { "addr", 1, &longval, 'a' },      /* --addr or -a  */
+        { "back", 0, NULL, 'b'  },      /* --back or -b */
+        { "check", 0, &longval, 'c' },  /* return 'c', or return 0 and set longval to 'c' if "check" is parsed */
+        { "extra", 0, &longval, 'x' },
+        { 0,    0,    0,    0   }       /* terminating -0 item */
+    };
+    
+    
+    while ((ch = getopt_long(argc, argv, "a:schx:", long_options, &long_opt_index)) != -1) {
+       switch (ch) {
+           case 'a':   /* long_opt_index does not make sense for these */
+               host_or_ip = optarg; /* 'a' and '--add' are confused (aliased) */
+               printf("Option a, not --addr. Argument %s.\n", host_or_ip);
+               break;
+           case 's':
+               /* 'b' and '--back' are confused (aliased) */
+	       host_or_ip = optarg;
+               printf("Option s, or --server.%s\n",host_or_ip);
+               break;
+           case 'c':
+               /* 'c' and '--check' are distinguished, but handled the same way */
+               printf("Option c, not --check.\n");
+               break;
+           case 'x':
+               host_or_ip = optarg;
+               printf("Option x, not --extra. Argument %s.\n", host_or_ip);
+               break;
+           case 0:     /* this is returned for long options with option[i].flag set (not NULL). */
+                       /* the flag itself will point out the option recognized, and long_opt_index is now relevant */
+               switch (longval) {
+		   case 'a':
+                       /* '--check' is managed here */
+                       host_or_ip = optarg;
+                       printf("Option --addr, not -a (Array index: %d). Argument: %s.\n", long_opt_index, host_or_ip);
+		      
+                       break;
+                   case 'c':
+                       /* '--check' is managed here */
+                       printf("Option --check, not -c (Array index: %d).\n", long_opt_index);
+		       printf("tableau %s", long_options[long_opt_index].name);
+                       break;
+                   case 'x':
+                       /* '--extra' is managed here */
+                       host_or_ip = optarg;
+                       printf("Option --extra, not -x (Array index: %d). Argument: %s.\n", long_opt_index, host_or_ip);	  
+                       break;
+                   /* there's no default here */
+               }
+               break;
+           case 'h':   /* mind that h is not described in the long option list */
+               printf("Usage: cmd [-a or --addr] [-b or --back] [-c or --check] [-x or --extra]\n");
+               break;
+           default:
+               printf("You, lamah!\n");
+       }
+    }
+    
+
+/*if (ch == -1) {
+    printf("Usage: cmd -a or --addr [-s or --server] [-c or --check] [-x or --extra]\n");
+  exit(1);
+}*/
 ip_get(ipaddress);
-printf("<%s>  %s\n", ipaddress[0]->ip, ipaddress[0]->name);
+nb = sizeof(ipaddress);
+
+
 
 cpu_get(cpuinfo);
 
 //TODO: fonction free pour les structures struct_if struct_cpu
+
+for ( i=0; ipaddress[i] != NULL; i++ ) {
+  
+printf("<%s>  %s\n", ipaddress[i]->ip, ipaddress[i]->name);
+  
+}
+printf(format, unitConvert(cpuinfo->free_mem), unitConvert(cpuinfo->total_mem), (unsigned) (cpuinfo->cpu_use));
+
+if ((ipaddress != NULL) && (cpuinfo != NULL))
+{
+  // TODO: reflechir à l'idée de création d'un thread pour envoyer les données
+  Clt_snd(ipaddress, cpuinfo, host_or_ip);
+  
+}
 
 exit(0);
 
