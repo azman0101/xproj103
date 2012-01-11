@@ -24,23 +24,29 @@ main.o: main.c /usr/include/unistd.h /usr/include/features.h \
  /usr/include/errno.h /usr/include/bits/errno.h \
  /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /usr/include/rpc/xdr.h /usr/include/rpc/types.h /usr/include/sys/param.h \
+ /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include-fixed/limits.h \
+ /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/linux/param.h \
+ /usr/include/x86_64-linux-gnu/asm/param.h \
+ /usr/include/asm-generic/param.h /usr/include/netinet/in.h \
+ /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
  /usr/include/sys/socket.h /usr/include/sys/uio.h /usr/include/bits/uio.h \
  /usr/include/bits/socket.h /usr/include/bits/sockaddr.h \
  /usr/include/x86_64-linux-gnu/asm/socket.h \
  /usr/include/asm-generic/socket.h \
  /usr/include/x86_64-linux-gnu/asm/sockios.h \
  /usr/include/asm-generic/sockios.h /usr/include/bits/socket2.h \
- /usr/include/netinet/in.h \
- /usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include/stdint.h \
- /usr/include/stdint.h /usr/include/bits/wchar.h /usr/include/bits/in.h \
- /usr/include/arpa/inet.h /usr/include/netdb.h /usr/include/rpc/netdb.h \
- /usr/include/bits/netdb.h /usr/include/ifaddrs.h \
- /usr/include/proc/devname.h /usr/include/proc/procps.h \
- /usr/include/proc/wchan.h /usr/include/proc/procps.h \
- /usr/include/proc/readproc.h /usr/include/proc/pwcache.h \
- /usr/include/dirent.h /usr/include/bits/dirent.h \
- /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h \
- /usr/include/linux/limits.h /usr/include/proc/escape.h \
+ /usr/include/bits/in.h /usr/include/arpa/inet.h /usr/include/netdb.h \
+ /usr/include/rpc/netdb.h /usr/include/bits/netdb.h \
+ /usr/include/ifaddrs.h /usr/include/proc/devname.h \
+ /usr/include/proc/procps.h /usr/include/proc/wchan.h \
+ /usr/include/proc/procps.h /usr/include/proc/readproc.h \
+ /usr/include/proc/pwcache.h /usr/include/dirent.h \
+ /usr/include/bits/dirent.h /usr/include/proc/escape.h \
  /usr/include/proc/readproc.h /usr/include/proc/sig.h \
  /usr/include/proc/sysinfo.h /usr/include/sys/dir.h \
  /usr/include/proc/version.h /usr/include/proc/whattime.h xproj103.h
@@ -149,6 +155,40 @@ main.o: main.c /usr/include/unistd.h /usr/include/features.h \
 
 /usr/include/asm-generic/errno-base.h:
 
+/usr/include/rpc/xdr.h:
+
+/usr/include/rpc/types.h:
+
+/usr/include/sys/param.h:
+
+/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include-fixed/limits.h:
+
+/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
+
+/usr/include/linux/param.h:
+
+/usr/include/x86_64-linux-gnu/asm/param.h:
+
+/usr/include/asm-generic/param.h:
+
+/usr/include/netinet/in.h:
+
+/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
 /usr/include/sys/socket.h:
 
 /usr/include/sys/uio.h:
@@ -168,14 +208,6 @@ main.o: main.c /usr/include/unistd.h /usr/include/features.h \
 /usr/include/asm-generic/sockios.h:
 
 /usr/include/bits/socket2.h:
-
-/usr/include/netinet/in.h:
-
-/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/include/stdint.h:
-
-/usr/include/stdint.h:
-
-/usr/include/bits/wchar.h:
 
 /usr/include/bits/in.h:
 
@@ -204,12 +236,6 @@ main.o: main.c /usr/include/unistd.h /usr/include/features.h \
 /usr/include/dirent.h:
 
 /usr/include/bits/dirent.h:
-
-/usr/include/bits/posix1_lim.h:
-
-/usr/include/bits/local_lim.h:
-
-/usr/include/linux/limits.h:
 
 /usr/include/proc/escape.h:
 

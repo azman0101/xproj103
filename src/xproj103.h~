@@ -2,6 +2,7 @@
 #define SLABSTAT      0x00000004
 #define BUFFSIZE      (64*1024) 
 #include <string.h>
+#include <sys/socket.h>
 
 static unsigned long dataUnit=1024;
 static char szDataUnit [16];
@@ -234,10 +235,17 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
 
 ////////////////////////////////////////////////////////////////////////////
 
-int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host)
+int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 {
-  int sock;
-  struct hostent *hostinfo = NULL;
+  int sock, rcved, rcvlen,i;
+  FILE *t;
+  struct hostent *hostinfo = gethostbyname(host);
+  
+  if (hostinfo == NULL)
+  {
+	perror("gethostbyname()");
+	exit(h_errno);
+  } 
   struct sockaddr_in sin = { 0 }; 
   sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
   if (sock == -1)
@@ -247,8 +255,98 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host)
   } 
   
   sin.sin_family = AF_INET;
-  sin.sin_addr.s_addr = inet_addr(host);
-  if (sin.sin_addr.s_addr == -1) { perror("inet_addr"); exit(errno); }
+  sin.sin_port = htons(port);
+  memcpy(&sin.sin_addr.s_addr, hostinfo->h_addr, hostinfo->h_length);
   
+  if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) 
+  {
+    perror("connect()");
+    exit(errno);
+  }
+  
+  for ( i=0; if_array[i] != NULL; i++ ) {
+  
+      rcvlen = strlen(if_array[i]->name);
+      if(send(sock, if_array[i]->name, strlen(if_array[i]->name), 0) != rcvlen)  {
+	perror("send()");
+	exit(errno);
+      }
+  
+  }
+
+  
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+int srv_rcv( char* host, int port)
+{
+  int sock, cltsck, rcved;
+  char buff[BUFFSIZE];
+  
+  struct sockaddr_in srv_sin = { 0 }, clt_sin =  { 0 }; 
+  sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
+  if (sock == -1)
+  {
+	perror("socket()");
+	exit(errno);
+  } 
+  
+  srv_sin.sin_family = AF_INET;
+  srv_sin.sin_port = htons(port);
+  if ( host == NULL)
+    srv_sin.sin_addr.s_addr = htonl(INADDR_ANY);
+  else
+    srv_sin.sin_addr.s_addr = htonl(INADDR_ANY); // TODO: remplacer par host mais en utilisant la bonne fonction
+
+
+  
+  if (bind(sock, (struct sockaddr *) &srv_sin, sizeof(srv_sin)) < 0) 
+  {
+    perror("bind()");
+    exit(errno);
+  }
+  
+  if (listen(sock, 5) < 0) 
+  {
+    perror("listen()");
+    exit(errno);
+  }
+ 	/* Run until cancelled */
+  while (1) {
+           unsigned int clientlen = sizeof(clt_sin);
+           /* Wait for client connection */
+           if ((cltsck = accept(sock, (struct sockaddr *) &clt_sin, &clientlen)) < 0) 
+	   {
+                 perror("accept()");
+		 exit(errno);
+           }
+           fprintf(stdout, "Client connected: %s\n", inet_ntoa(clt_sin.sin_addr));
+          
+	   if (( rcved = recv( cltsck, buff, BUFFSIZE, 0)) < 0)
+	   {
+		 perror("recv()");
+		 exit(errno);
+	   }
+	   
+	   while (rcved > 0) {
+	     if (send(cltsck, buff, rcved, 0) != rcved)
+	     {
+		 perror("send()");
+		 exit(errno);
+	     }
+	     if ((rcved = recv(cltsck, buff, BUFFSIZE, 0)) < 0)
+	     {
+		 perror("recv()");
+		 exit(errno);
+	     }
+	     
+	   }
+	   printf("%s",buff);
+	    close(cltsck);
+  }
+          
+ 
   return 0;
 }

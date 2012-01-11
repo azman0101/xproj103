@@ -21,6 +21,7 @@
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>
+#include <rpc/xdr.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -53,37 +54,37 @@ ipaddress = malloc(sizeof(struct_if));
 cpuinfo = malloc(sizeof(struct_cpu));
 char ch;                   /* service variables */
 int long_opt_index = 0;
-int longval, other;
-char *host_or_ip;
+int longval, port = 5333, server_mode = 0;
+char *host_or_ip = NULL;
 char *my_argument;
 
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
         { "addr", 1, &longval, 'a' },      /* --addr or -a  */
-        { "back", 0, NULL, 'b'  },      /* --back or -b */
+        { "server", 0, NULL, 's'  },      /* --back or -b */
         { "check", 0, &longval, 'c' },  /* return 'c', or return 0 and set longval to 'c' if "check" is parsed */
-        { "extra", 0, &longval, 'x' },
+        { "port", 1, &longval, 'p' },
         { 0,    0,    0,    0   }       /* terminating -0 item */
     };
     
     
-    while ((ch = getopt_long(argc, argv, "a:schx:", long_options, &long_opt_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "a:schp:", long_options, &long_opt_index)) != -1) {
        switch (ch) {
            case 'a':   /* long_opt_index does not make sense for these */
                host_or_ip = optarg; /* 'a' and '--add' are confused (aliased) */
                printf("Option a, not --addr. Argument %s.\n", host_or_ip);
                break;
            case 's':
-               /* 'b' and '--back' are confused (aliased) */
-	       host_or_ip = optarg;
-               printf("Option s, or --server.%s\n",host_or_ip);
+               /* 's' and '--server' are confused (aliased) */
+	       server_mode = 1;
+               printf("Option s, or --server.\n");
                break;
            case 'c':
                /* 'c' and '--check' are distinguished, but handled the same way */
                printf("Option c, not --check.\n");
                break;
-           case 'x':
-               host_or_ip = optarg;
-               printf("Option x, not --extra. Argument %s.\n", host_or_ip);
+           case 'p':
+               port = atoi(optarg);
+               printf("Option p, not --port. Argument %d.\n", port);
                break;
            case 0:     /* this is returned for long options with option[i].flag set (not NULL). */
                        /* the flag itself will point out the option recognized, and long_opt_index is now relevant */
@@ -101,14 +102,14 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        break;
                    case 'x':
                        /* '--extra' is managed here */
-                       host_or_ip = optarg;
-                       printf("Option --extra, not -x (Array index: %d). Argument: %s.\n", long_opt_index, host_or_ip);	  
+                       port = atoi(optarg);
+                       printf("Option --port, not -p (Array index: %d). Argument: %d.\n", long_opt_index, port);	  
                        break;
                    /* there's no default here */
                }
                break;
            case 'h':   /* mind that h is not described in the long option list */
-               printf("Usage: cmd [-a or --addr] [-b or --back] [-c or --check] [-x or --extra]\n");
+               printf("Usage: cmd [-a or --addr] [-b or --back] [-c or --check] [-x or --extra]\n en mode client, -a ou -addr indique l'adresse du serveur.\n En mode serveur, -s ou -server, -a ou -addr indique l'adresse que le serveur écoutera, si le paramètre n'est pas renseigné,\n le serveur écoutera toutes les interfaces.\n ");
                break;
            default:
                printf("You, lamah!\n");
@@ -116,10 +117,10 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
     }
     
 
-/*if (ch == -1) {
-    printf("Usage: cmd -a or --addr [-s or --server] [-c or --check] [-x or --extra]\n");
-  exit(1);
-}*/
+if (server_mode == 1) {
+srv_rcv(host_or_ip, port);
+exit(1);
+}
 ip_get(ipaddress);
 nb = sizeof(ipaddress);
 
@@ -139,7 +140,7 @@ printf(format, unitConvert(cpuinfo->free_mem), unitConvert(cpuinfo->total_mem), 
 if ((ipaddress != NULL) && (cpuinfo != NULL))
 {
   // TODO: reflechir à l'idée de création d'un thread pour envoyer les données
-  Clt_snd(ipaddress, cpuinfo, host_or_ip);
+  Clt_snd(ipaddress, cpuinfo, host_or_ip, port);
   
 }
 
