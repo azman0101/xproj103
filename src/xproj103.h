@@ -266,8 +266,8 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   
   for ( i=0; if_array[i] != NULL; i++ ) {
   
-      rcvlen = strlen(if_array[i]->name);
-      if(send(sock, if_array[i]->name, strlen(if_array[i]->name), 0) != rcvlen)  {
+      rcvlen = strlen(if_array[i]->name)+1;
+      if(send(sock, if_array[i]->name, strlen(if_array[i]->name)+1, 0) != rcvlen)  {
 	perror("send()");
 	exit(errno);
       }
@@ -343,7 +343,7 @@ int srv_rcv( char* host, int port)
 	     }
 	     
 	   }*/
-	   printf("%s",buff);
+	   printf("%s\n",buff);
 	    close(cltsck);
   }
           
