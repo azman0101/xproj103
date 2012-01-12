@@ -9,6 +9,16 @@ Pour récupérer un version du projet
 ```
 $ git clone git@github.com:azman0101/xproj103.git
 ```
+
+Dépendances
+-----------
+
+Le projet necessite les bibliothèques de procps 
+
+```bash
+apt-get install libproc-dev
+```
+
 Usage
 -----
 
