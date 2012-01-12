@@ -35,11 +35,13 @@ En mode serveur:
 ```
 
 Si -a n'est pas utilisé, alors le serveur écoute toutes les interfaces (ipv4)
+
 ```bash
 exemple: ./xproj103 -a 192.168.1.1 -p 1050 -s
 ```
 
 En mode client:
+
 ```bash
 ./xproj103 -a <ip du serveur> -p <port d'écoute du serveur>
 ```
