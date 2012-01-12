@@ -29,7 +29,8 @@ $ make
 $ ./src/xproj103 
 ```
 En mode serveur:
-```bash
+
+```
 ./xproj103 [-a <ip de l'interface à écouter>] -p <port à écouter> -s
 ```
 
