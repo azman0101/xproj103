@@ -17,7 +17,7 @@ static unsigned int moreheaders=TRUE;
 static int a_option; /* "-a" means "show active/inactive" */
 static int statMode=VMSTAT;
 static unsigned sleep_time = 1;
-static unsigned long num_updates = 10;
+static unsigned long num_updates = 2;
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -242,7 +242,7 @@ bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
 
 bool_t xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
 {
-    if ( xdr_u_long(xdrs, (u_long*)&cpustruc->cpu_use) && xdr_u_long(xdrs, &cpustruc->free_mem) && xdr_u_long(xdrs, &cpustruc->total_mem ))
+    if ( xdr_u_long(xdrs, (long unsigned int*)&cpustruc->cpu_use) && xdr_u_long(xdrs, &cpustruc->free_mem) && xdr_u_long(xdrs, &cpustruc->total_mem ))
       return TRUE;
     return FALSE;
 }
@@ -283,8 +283,9 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   u_int size = NI_MAXHOST;
  // buf = (char*)malloc(size);
   
+  //xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
   
-  xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
+  xdrstdio_create(&xdrs, stdout, XDR_ENCODE);
  
   xdr_cpu(&xdrs, cpu_array);
   //xdr_reference(xdrs, &cpu_array, sizeof(struct_cpu), xdr_cpu);
@@ -295,7 +296,7 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
      // xdr_reference(xdrs, &if_array[i], sizeof(struct_if), xdr_if);
       xdr_if(&xdrs, if_array[i]);
       rcvlen = sizeof(xdrs);
-      if(send(sock,xdrs, sizeof(xdrs), 0) != rcvlen)  {
+      if(send(sock,(const void *)xdrs, sizeof(xdrs), 0) != rcvlen)  {
 	perror("send()");
 	exit(errno);
       }
@@ -310,9 +311,12 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 
 int srv_rcv( char* host, int port)
 {
-  int sock, cltsck, rcved;
+  int sock, cltsck, rcved,i;
   char buff[BUFFSIZE];
-  
+  XDR xdrs;
+  char xdrbuf[BUFFSIZE];
+  struct_if** if_rcv_array;
+  struct_cpu** cpu_rcv_array;
   struct sockaddr_in srv_sin = { 0 }, clt_sin =  { 0 }; 
   sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
   if (sock == -1)
@@ -341,9 +345,18 @@ int srv_rcv( char* host, int port)
     perror("listen()");
     exit(errno);
   }
+     
+   //xdrmem_create(&xdrs, xdrbuf, BUFFSIZE, XDR_DECODE);
+
+   xdrstdio_create(&xdrs, stdout, XDR_DECODE);
+   cpu_rcv_array = malloc(sizeof(struct_cpu));
+   if_rcv_array = malloc(sizeof(struct_if));
+
  	/* Run until cancelled */
-  while (1) {
+  for ( i = 0;;i++) {
            unsigned int clientlen = sizeof(clt_sin);
+	   cpu_rcv_array[i] = malloc(sizeof(struct_cpu));
+	   if_rcv_array[i] = malloc(sizeof(struct_if));
            /* Wait for client connection */
            if ((cltsck = accept(sock, (struct sockaddr *) &clt_sin, &clientlen)) < 0) 
 	   {
@@ -357,22 +370,15 @@ int srv_rcv( char* host, int port)
 		 perror("recv()");
 		 exit(errno);
 	   }
-	   // portion de code d'écho
-	/*   while (rcved > 0) {
-	     if (send(cltsck, buff, rcved, 0) != rcved)
-	     {
-		 perror("send()");
-		 exit(errno);
-	     }
-	     if ((rcved = recv(cltsck, buff, BUFFSIZE, 0)) < 0)
-	     {
-		 perror("recv()");
-		 exit(errno);
-	     }
-	     
-	   }*/
-	   printf("%s\n",buff);
+	   printf("%d\n", i);
+	    
+	  //  xdr_cpu(&xdrs, cpu_rcv_array[i]);
+	   // xdr_if(&xdrs, if_rcv_array[i]);
+	     printf("CPU: %lu\n", (long unsigned)cpu_rcv_array[i]->cpu_use);
+	     printf("FREE MEM: %lu\n", cpu_rcv_array[i]->free_mem);
+	     printf("Interface: %6s\n", if_rcv_array[i]->name);
 	    close(cltsck);
+	   
   }
           
  
