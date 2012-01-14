@@ -7,9 +7,8 @@
 static unsigned long dataUnit=1024;
 static char szDataUnit [16];
 
-
-#define FALSE 0
-#define TRUE 1
+//#define FALSE 0
+//#define TRUE 1
 
 static int a_option; /* "-a" means "show active/inactive" */
 static unsigned int height;   // window height
@@ -37,7 +36,7 @@ static int endofline(FILE *ifp, int c)
 ///////////////////////////////////////////////////////////////////////////
 
 typedef struct struct_if {
-	char ip[NI_MAXHOST];
+	char *ip;
 	char *name;
 }struct_if;
 
@@ -114,9 +113,10 @@ struct_if** ip_get(struct_if **ip_array)
 		    exit(EXIT_FAILURE);
 		}
 		
-		strncpy(ip_array[i]->ip,host,sizeof(host));
-		ip_array[i]->name = (char*)malloc(sizeof(ifa->ifa_name)+1);
+		ip_array[i]->ip =(char*)malloc(sizeof(host)+1);
+		strncpy(ip_array[i]->ip,host,sizeof(host)+1);
 		
+		ip_array[i]->name = (char*)malloc(sizeof(ifa->ifa_name)+1);
 		if ( ip_array[i]->name == NULL) {
 		    perror("ip_array->name memory allocation");
 		    exit(EXIT_FAILURE);
@@ -233,12 +233,29 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
   return cpu_array;
 }
 
+bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
+{
+    if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, (char**)&ifstruc->ip, sizeof(ifstruc->ip)+1))
+      return TRUE;
+    return FALSE;
+}
+
+bool_t xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
+{
+    if ( xdr_u_long(xdrs, (u_long*)&cpustruc->cpu_use) && xdr_u_long(xdrs, &cpustruc->free_mem) && xdr_u_long(xdrs, &cpustruc->total_mem ))
+      return TRUE;
+    return FALSE;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 
 int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 {
   int sock, rcved, rcvlen,i;
   FILE *t;
+  XDR xdrs;
+  char buf[4096];
   struct hostent *hostinfo = gethostbyname(host);
   
   if (hostinfo == NULL)
@@ -263,11 +280,22 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
     perror("connect()");
     exit(errno);
   }
+  u_int size = NI_MAXHOST;
+ // buf = (char*)malloc(size);
+  
+  
+  xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
+ 
+  xdr_cpu(&xdrs, cpu_array);
+  //xdr_reference(xdrs, &cpu_array, sizeof(struct_cpu), xdr_cpu);
   
   for ( i=0; if_array[i] != NULL; i++ ) {
-  
-      rcvlen = strlen(if_array[i]->name);
-      if(send(sock, if_array[i]->name, strlen(if_array[i]->name), 0) != rcvlen)  {
+      
+      
+     // xdr_reference(xdrs, &if_array[i], sizeof(struct_if), xdr_if);
+      xdr_if(&xdrs, if_array[i]);
+      rcvlen = sizeof(xdrs);
+      if(send(sock,xdrs, sizeof(xdrs), 0) != rcvlen)  {
 	perror("send()");
 	exit(errno);
       }
@@ -329,8 +357,8 @@ int srv_rcv( char* host, int port)
 		 perror("recv()");
 		 exit(errno);
 	   }
-	   
-	   while (rcved > 0) {
+	   // portion de code d'écho
+	/*   while (rcved > 0) {
 	     if (send(cltsck, buff, rcved, 0) != rcved)
 	     {
 		 perror("send()");
@@ -342,8 +370,8 @@ int srv_rcv( char* host, int port)
 		 exit(errno);
 	     }
 	     
-	   }
-	   printf("%s",buff);
+	   }*/
+	   printf("%s\n",buff);
 	    close(cltsck);
   }
           
