@@ -124,7 +124,7 @@ struct_if** ip_get(struct_if **ip_array)
         }
     }
     //printf("\taddress: <%s>\n interface: %s\n", ip_array[0]->ip, ip_array[0]->name);
-    free(ip_array);
+    
     freeifaddrs(ifaddr);
     return ip_array;
 }

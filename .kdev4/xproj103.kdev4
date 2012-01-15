@@ -31,7 +31,7 @@ Working Directory=
 isExecutable=true
 
 [MakeBuilder]
-Default Make Environment Profile=0
+Default Make Environment Profile=
 Install As Root=true
 Number Of Jobs=1
 

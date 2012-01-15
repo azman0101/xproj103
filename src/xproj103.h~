@@ -152,7 +152,7 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
     unsigned int sleep_half; 
     unsigned long kb_per_page = sysconf(_SC_PAGESIZE) / 1024ul;
     int i, debt = 0;  // handle idle ticks running backwards
-    int user_hz = sysconf(_SC_CLK_TCK);
+    long user_hz = sysconf(_SC_CLK_TCK);
 
     if (cpu_array == NULL)
       cpu_array = malloc(sizeof(struct_cpu));
