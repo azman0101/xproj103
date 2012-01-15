@@ -145,7 +145,7 @@ if ((ipaddress != NULL) && (cpuinfo != NULL))
 }
 
 free(ipaddress);
-
+free(cpuinfo);
 exit(0);
 
 }

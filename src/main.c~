@@ -144,7 +144,7 @@ if ((ipaddress != NULL) && (cpuinfo != NULL))
   
 }
 
-free(ip_array);
+free(ipaddress);
 
 exit(0);
 

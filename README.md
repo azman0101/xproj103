@@ -22,9 +22,11 @@ apt-get install libproc-dev
 Usage
 -----
 
+Compiler les sources dans un autre dossier que le dossier source.
+
 ```bash
-$ cd xproj103
-$ ./configure
+$ cd xproj103/build
+$ ../configure
 $ make
 $ ./src/xproj103 
 ```
