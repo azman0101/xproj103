@@ -59,18 +59,18 @@ char *host_or_ip = NULL;
 char *my_argument;
 
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
-        { "addr", 1, &longval, 'a' },      /* --addr or -a  */
-        { "server", 0, NULL, 's'  },      /* --back or -b */
-        { "sample", 0, &longval, 'S' },  /* return 'c', or return 0 and set longval to 'c' if "check" is parsed */
+        { "addr", 1, &longval, 'a' },      /* --addr ou -a  */
+        { "server", 0, NULL, 's'  },      /* --server ou -s */
+        { "sample", 1, &longval, 'S' },  /* retourne 'S', ou retourne 0 et initialise longval à 'S' */
         { "port", 1, &longval, 'p' },
         { 0,    0,    0,    0   }       /* terminating -0 item */
     };
     
     
-    while ((ch = getopt_long(argc, argv, "a:sS:hp:", long_options, &long_opt_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "+a:S:hp:s", long_options, &long_opt_index)) != -1) {
        switch (ch) {
-           case 'a':   /* long_opt_index does not make sense for these */
-               host_or_ip = optarg; /* 'a' and '--add' are confused (aliased) */
+           case 'a':  
+               host_or_ip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
                printf("Option a, not --addr. Argument %s.\n", host_or_ip);
                break;
            case 's':
@@ -79,8 +79,11 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                printf("Option s, or --server.\n");
                break;
            case 'S':
-               /* 'c' and '--check' are distinguished, but handled the same way */
-               printf("Option S, not --sample.\n");
+               /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
+	       
+	       i = atoi(optarg);
+	       num_updates = (i < 11) && (i > 1) ? i : 10;
+               printf("Option -S --sample activée, [2 - 10].\n");
                break;
            case 'p':
                port = atoi(optarg);
@@ -95,10 +98,12 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        printf("Option --addr, not -a (Array index: %d). Argument: %s.\n", long_opt_index, host_or_ip);
 		      
                        break;
-                   case 'c':
-                       /* '--check' is managed here */
-                       printf("Option --check, not -c (Array index: %d).\n", long_opt_index);
-		       printf("tableau %s", long_options[long_opt_index].name);
+                   case 'S':
+                        /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
+		        
+			i = atoi(optarg);
+			num_updates = (i < 11) && (i > 1) ? i : 10;
+                       printf("Option -S --sample activée, [2 - 10].\n");
                        break;
                    case 'x':
                        /* '--extra' is managed here */
