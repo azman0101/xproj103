@@ -35,7 +35,10 @@ main.o: main.c /usr/include/unistd.h /usr/include/features.h \
  /usr/include/bits/socket.h /usr/include/bits/sockaddr.h \
  /usr/include/asm/socket.h /usr/include/asm-generic/socket.h \
  /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
- /usr/include/bits/socket2.h /usr/include/bits/in.h \
+ /usr/include/bits/socket2.h /usr/include/bits/in.h /usr/include/signal.h \
+ /usr/include/bits/signum.h /usr/include/bits/siginfo.h \
+ /usr/include/bits/sigaction.h /usr/include/bits/sigcontext.h \
+ /usr/include/bits/sigstack.h /usr/include/bits/sigthread.h \
  /usr/include/arpa/inet.h /usr/include/netdb.h /usr/include/rpc/netdb.h \
  /usr/include/bits/netdb.h /usr/include/ifaddrs.h \
  /usr/include/proc/devname.h /usr/include/proc/procps.h \
@@ -198,6 +201,20 @@ main.o: main.c /usr/include/unistd.h /usr/include/features.h \
 /usr/include/bits/socket2.h:
 
 /usr/include/bits/in.h:
+
+/usr/include/signal.h:
+
+/usr/include/bits/signum.h:
+
+/usr/include/bits/siginfo.h:
+
+/usr/include/bits/sigaction.h:
+
+/usr/include/bits/sigcontext.h:
+
+/usr/include/bits/sigstack.h:
+
+/usr/include/bits/sigthread.h:
 
 /usr/include/arpa/inet.h:
 

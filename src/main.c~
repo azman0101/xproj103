@@ -21,6 +21,8 @@
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>
+#include <rpc/xdr.h>
+#include <signal.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,7 +42,6 @@
 #include "proc/whattime.h"
 
 #include "xproj103.h"
-
 
 int main(int argc,char* argv[])
 {

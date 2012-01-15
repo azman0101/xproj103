@@ -20,7 +20,7 @@ Name=New Native Application Configuration
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=-a 192.168.1.30 -p 1050 -s
+Arguments=-a 192.168.1.30 -p 1050
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=default

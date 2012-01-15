@@ -5,22 +5,17 @@
 #include <sys/socket.h>
 
 static unsigned long dataUnit=1024;
-static char szDataUnit [16];
+
 
 //#define FALSE 0
 //#define TRUE 1
 
-static int a_option; /* "-a" means "show active/inactive" */
-static unsigned int height;   // window height
-static unsigned int moreheaders=TRUE;
-
-static int a_option; /* "-a" means "show active/inactive" */
 static int statMode=VMSTAT;
 static unsigned sleep_time = 1;
-static unsigned long num_updates = 2;
+static unsigned long num_updates = 8;
 
 /////////////////////////////////////////////////////////////////////////////
-
+/*
 static int endofline(FILE *ifp, int c)
 {
     int eol = (c == '\r' || c == '\n');
@@ -32,7 +27,7 @@ static int endofline(FILE *ifp, int c)
     }
     return(eol);
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////
 
 typedef struct struct_if {
@@ -50,7 +45,7 @@ typedef struct struct_cpu {
 }struct_cpu;
 
 ////////////////////////////////////////////////////////////////////////////
-
+/*
 char *safe_strdup (const char *s)
 {
 	char *p;
@@ -62,7 +57,7 @@ char *safe_strdup (const char *s)
  	memcpy (p, s, l);
  	return (p);
 }
-
+*/
 /* Code inspiré de l'exemple du man getifaddrs */
 struct_if** ip_get(struct_if **ip_array)
 {
@@ -129,6 +124,7 @@ struct_if** ip_get(struct_if **ip_array)
         }
     }
     //printf("\taddress: <%s>\n interface: %s\n", ip_array[0]->ip, ip_array[0]->name);
+    free(ip_array);
     freeifaddrs(ifaddr);
     return ip_array;
 }
@@ -148,7 +144,6 @@ static unsigned long unitConvert(unsigned int size){
 struct_cpu * cpu_get(struct_cpu *cpu_array) {
     const char format[]="%6lu %6lu %2u\n";
     unsigned int tog=0; /* toggle switch for cleaner code */
-    unsigned int hz = Hertz;
     unsigned int running,blocked,dummy_1,dummy_2;
     jiff cpu_use[2], cpu_nic[2], cpu_sys[2], cpu_idl[2], cpu_iow[2], cpu_xxx[2], cpu_yyy[2], cpu_zzz[2];
     jiff duse, dsys, didl, diow, dstl, Div, divo2,avg_cpu = 0;
@@ -158,7 +153,7 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
     unsigned long kb_per_page = sysconf(_SC_PAGESIZE) / 1024ul;
     int i, debt = 0;  // handle idle ticks running backwards
     int user_hz = sysconf(_SC_CLK_TCK);
-    
+
     if (cpu_array == NULL)
       cpu_array = malloc(sizeof(struct_cpu));
     
@@ -233,9 +228,21 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
   return cpu_array;
 }
 
+bool_t xdr_test(XDR* xdrs, char* test)
+{
+//  if (test == NULL)
+//    test = malloc(6);
+  
+  // if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, (char**)&ifstruc->ip, sizeof(ifstruc->ip)+1))
+   if ( xdr_string(xdrs, &test, strlen(test)+1))
+      return TRUE;
+    return FALSE;
+}
+
 bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
 {
-    if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, (char**)&ifstruc->ip, sizeof(ifstruc->ip)+1))
+
+   if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, (char**)&ifstruc->ip, sizeof(ifstruc->ip)+1))
       return TRUE;
     return FALSE;
 }
@@ -283,20 +290,21 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   u_int size = NI_MAXHOST;
  // buf = (char*)malloc(size);
   
-  //xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
+  xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
   
-  xdrstdio_create(&xdrs, stdout, XDR_ENCODE);
+  //xdrstdio_create(&xdrs, stdout, XDR_ENCODE);
  
   xdr_cpu(&xdrs, cpu_array);
-  //xdr_reference(xdrs, &cpu_array, sizeof(struct_cpu), xdr_cpu);
+  
   
   for ( i=0; if_array[i] != NULL; i++ ) {
       
       
-     // xdr_reference(xdrs, &if_array[i], sizeof(struct_if), xdr_if);
+     
       xdr_if(&xdrs, if_array[i]);
-      rcvlen = sizeof(xdrs);
-      if(send(sock,(const void *)xdrs, sizeof(xdrs), 0) != rcvlen)  {
+     
+      rcvlen = sizeof(buf);
+      if(send(sock,buf, sizeof(buf)+1, 0) != rcvlen)  {
 	perror("send()");
 	exit(errno);
       }
@@ -311,10 +319,10 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 
 int srv_rcv( char* host, int port)
 {
+  
   int sock, cltsck, rcved,i;
   char buff[BUFFSIZE];
   XDR xdrs;
-  char xdrbuf[BUFFSIZE];
   struct_if** if_rcv_array;
   struct_cpu** cpu_rcv_array;
   struct sockaddr_in srv_sin = { 0 }, clt_sin =  { 0 }; 
@@ -348,15 +356,29 @@ int srv_rcv( char* host, int port)
      
    //xdrmem_create(&xdrs, xdrbuf, BUFFSIZE, XDR_DECODE);
 
-   xdrstdio_create(&xdrs, stdout, XDR_DECODE);
+   //xdrstdio_create(&xdrs, stdout, XDR_DECODE);
    cpu_rcv_array = malloc(sizeof(struct_cpu));
+   
+   if ( cpu_rcv_array == NULL) {
+      perror("cpu_rcv_array memory allocation");
+      exit(EXIT_FAILURE);
+   }
+    
    if_rcv_array = malloc(sizeof(struct_if));
+   
+   if ( if_rcv_array == NULL) {
+      perror("if_rcv_array memory allocation");
+      exit(EXIT_FAILURE);
+   }
+    
 
  	/* Run until cancelled */
   for ( i = 0;;i++) {
            unsigned int clientlen = sizeof(clt_sin);
-	   cpu_rcv_array[i] = malloc(sizeof(struct_cpu));
-	   if_rcv_array[i] = malloc(sizeof(struct_if));
+	   cpu_rcv_array[i] = calloc(1, sizeof(struct_cpu));
+	   if_rcv_array[i] = calloc(1, sizeof(struct_if));
+	   
+	  
            /* Wait for client connection */
            if ((cltsck = accept(sock, (struct sockaddr *) &clt_sin, &clientlen)) < 0) 
 	   {
@@ -371,16 +393,20 @@ int srv_rcv( char* host, int port)
 		 exit(errno);
 	   }
 	   printf("%d\n", i);
-	    
-	  //  xdr_cpu(&xdrs, cpu_rcv_array[i]);
-	   // xdr_if(&xdrs, if_rcv_array[i]);
+	   
+	     xdrmem_create(&xdrs, buff, BUFFSIZE, XDR_DECODE);
+	     xdr_cpu(&xdrs, cpu_rcv_array[i]);
+	     xdr_if(&xdrs, if_rcv_array[i]);
 	     printf("CPU: %lu\n", (long unsigned)cpu_rcv_array[i]->cpu_use);
 	     printf("FREE MEM: %lu\n", cpu_rcv_array[i]->free_mem);
+	     printf("FREE TOT: %lu\n", cpu_rcv_array[i]->total_mem);
+
 	     printf("Interface: %6s\n", if_rcv_array[i]->name);
 	    close(cltsck);
 	   
   }
-          
+  free(cpu_rcv_array);
+  free(if_rcv_array);          
  
   return 0;
 }

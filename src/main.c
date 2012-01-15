@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <rpc/xdr.h>
+#include <signal.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -42,7 +43,6 @@
 
 #include "xproj103.h"
 
-
 int main(int argc,char* argv[])
 {
     
@@ -61,13 +61,13 @@ char *my_argument;
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
         { "addr", 1, &longval, 'a' },      /* --addr or -a  */
         { "server", 0, NULL, 's'  },      /* --back or -b */
-        { "check", 0, &longval, 'c' },  /* return 'c', or return 0 and set longval to 'c' if "check" is parsed */
+        { "sample", 0, &longval, 'S' },  /* return 'c', or return 0 and set longval to 'c' if "check" is parsed */
         { "port", 1, &longval, 'p' },
         { 0,    0,    0,    0   }       /* terminating -0 item */
     };
     
     
-    while ((ch = getopt_long(argc, argv, "a:schp:", long_options, &long_opt_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "a:sS:hp:", long_options, &long_opt_index)) != -1) {
        switch (ch) {
            case 'a':   /* long_opt_index does not make sense for these */
                host_or_ip = optarg; /* 'a' and '--add' are confused (aliased) */
@@ -78,9 +78,9 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 	       server_mode = 1;
                printf("Option s, or --server.\n");
                break;
-           case 'c':
+           case 'S':
                /* 'c' and '--check' are distinguished, but handled the same way */
-               printf("Option c, not --check.\n");
+               printf("Option S, not --sample.\n");
                break;
            case 'p':
                port = atoi(optarg);
