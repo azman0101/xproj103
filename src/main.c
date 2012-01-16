@@ -56,7 +56,6 @@ char ch;                   /* service variables */
 int long_opt_index = 0;
 int longval, port = 5333, server_mode = 0;
 char *host_or_ip = NULL;
-char *my_argument;
 
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
         { "addr", 1, &longval, 'a' },      /* --addr ou -a  */
@@ -149,7 +148,7 @@ if ((ipaddress != NULL) && (cpuinfo != NULL))
   
 }
 
-free(ipaddress);
+free_ipaddress(ipaddress);
 free(cpuinfo);
 exit(0);
 

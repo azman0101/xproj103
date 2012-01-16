@@ -14,20 +14,7 @@ static int statMode=VMSTAT;
 static unsigned sleep_time = 1;
 static unsigned long num_updates = 8;
 
-/////////////////////////////////////////////////////////////////////////////
-/*
-static int endofline(FILE *ifp, int c)
-{
-    int eol = (c == '\r' || c == '\n');
-    if (c == '\r')
-    {
-        c = getc(ifp);
-        if (c != '\n' && c != EOF)
-            ungetc(c, ifp);
-    }
-    return(eol);
-}
-*/
+///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 typedef struct struct_if {
@@ -45,6 +32,7 @@ typedef struct struct_cpu {
 }struct_cpu;
 
 ////////////////////////////////////////////////////////////////////////////
+
 /*
 char *safe_strdup (const char *s)
 {
@@ -58,6 +46,20 @@ char *safe_strdup (const char *s)
  	return (p);
 }
 */
+
+void free_ipaddress (struct_if** tofree)
+{
+  int i;
+	for ( i=0; tofree[i] != NULL; i++ ) {
+	  if (tofree[i]->ip != NULL)
+	    free(tofree[i]->ip);
+	  if (tofree[i]->name != NULL)
+	    free(tofree[i]->name);
+	  free(tofree[i]);
+
+	}
+}
+
 /* Code inspiré de l'exemple du man getifaddrs */
 struct_if** ip_get(struct_if **ip_array)
 {
@@ -74,18 +76,13 @@ struct_if** ip_get(struct_if **ip_array)
     
     /* Walk through linked list, maintaining head pointer so we
      can free list later */
-    i=0;
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+   // i=0;
+    for ( i= 0,ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next, i++) {
         if (ifa->ifa_addr == NULL)
             continue;
         
         family = ifa->ifa_addr->sa_family;
-        
-        /* Display interface name and family (including symbolic
-         form of the latter for the common families) */
-        
-      //  printf("%s  address family: %d%s\n",,ifa->ifa_name, family, (family == AF_PACKET) ? " (AF_PACKET)" : (family == AF_INET) ?   " (AF_INET)" : (family == AF_INET6) ?  " (AF_INET6)" : "");
-        
+	
         /* For an AF_INET* interface address, display the address */
         
         if (family == AF_INET || family == AF_INET6) { // supression des address ipv6 || family == AF_INET6
@@ -98,9 +95,10 @@ struct_if** ip_get(struct_if **ip_array)
                 exit(EXIT_FAILURE);
             }
             
-	    if (strcmp(ifa->ifa_name, "lo") ) 
+            // exclure le loopback des ip à récolter.
+	    if (strcmp(ifa->ifa_name, "lo")) 
 	    {
-	        //printf("\t<%s>\n", host);
+	    
 		ip_array[i] = calloc(1, sizeof(struct_if));
 		
 		if ( ip_array[i] == NULL) {
@@ -108,18 +106,22 @@ struct_if** ip_get(struct_if **ip_array)
 		    exit(EXIT_FAILURE);
 		}
 		
-		ip_array[i]->ip =(char*)malloc(sizeof(host)+1);
-		strncpy(ip_array[i]->ip,host,sizeof(host)+1);
+		//printf("\ttaille: %d\n", strlen(host));
+		ip_array[i]->ip =(char*)malloc(strlen(host)+1);
+		if ( ip_array[i]->ip == NULL) {
+		    perror("ip_array->ip memory allocation");
+		    exit(EXIT_FAILURE);
+		}
+		strncpy(ip_array[i]->ip,host,strlen(host)+1);
 		
-		ip_array[i]->name = (char*)malloc(sizeof(ifa->ifa_name)+1);
+		ip_array[i]->name = (char*)malloc(strlen(ifa->ifa_name)+1);
 		if ( ip_array[i]->name == NULL) {
 		    perror("ip_array->name memory allocation");
 		    exit(EXIT_FAILURE);
 		}
 		
-		strncpy(ip_array[i]->name,ifa->ifa_name,sizeof(ifa->ifa_name));
-	      // ip_array[i]->name = ifa->ifa_name;
-		i++;
+		strncpy(ip_array[i]->name,ifa->ifa_name,strlen(ifa->ifa_name)+1);
+
 	    }
         }
     }
@@ -228,21 +230,10 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
   return cpu_array;
 }
 
-bool_t xdr_test(XDR* xdrs, char* test)
-{
-//  if (test == NULL)
-//    test = malloc(6);
-  
-  // if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, (char**)&ifstruc->ip, sizeof(ifstruc->ip)+1))
-   if ( xdr_string(xdrs, &test, strlen(test)+1))
-      return TRUE;
-    return FALSE;
-}
-
 bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
 {
 
-   if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, (char**)&ifstruc->ip, sizeof(ifstruc->ip)+1))
+   if ( xdr_string(xdrs, &ifstruc->name, sizeof(ifstruc->name)+1) && xdr_string(xdrs, &ifstruc->ip, sizeof(ifstruc->ip)+1))
       return TRUE;
     return FALSE;
 }
@@ -265,11 +256,14 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   char buf[4096];
   struct hostent *hostinfo = gethostbyname(host);
   
+  // Si l'initialisation de la structure hostinfo échoue.
   if (hostinfo == NULL)
   {
 	perror("gethostbyname()");
 	exit(h_errno);
-  } 
+  }
+  
+  //Si la création du socket échoue.
   struct sockaddr_in sin = { 0 }; 
   sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
   if (sock == -1)
@@ -278,31 +272,35 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 	exit(errno);
   } 
   
+  
   sin.sin_family = AF_INET;
-  sin.sin_port = htons(port);
+  sin.sin_port = htons(port); // htons converti le port
   memcpy(&sin.sin_addr.s_addr, hostinfo->h_addr, hostinfo->h_length);
   
+  // Si la connection échoue.
   if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) 
   {
     perror("connect()");
     exit(errno);
   }
-  u_int size = NI_MAXHOST;
+  u_int size = NI_MAXHOST; //TODO: résoudre le probleme de buff fixe.
  // buf = (char*)malloc(size);
   
+  // Crée un pointeur xdrs en mémoire et l'associe à buf, pour l'encodage
   xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
   
-  //xdrstdio_create(&xdrs, stdout, XDR_ENCODE);
- 
+  // Ajoute la structure cpu_array au buf attaché au pointeur xdrs.
   xdr_cpu(&xdrs, cpu_array);
   
-  
+  for ( i=0; if_array[i] != NULL; i++ )
+   {
+	printf("ip: %s index: %d\n", if_array[i]->ip, i);
+	xdr_if(&xdrs, if_array[i]);
+   }
+      
+   
   for ( i=0; if_array[i] != NULL; i++ ) {
-      
-      
-     
-      xdr_if(&xdrs, if_array[i]);
-     
+
       rcvlen = sizeof(buf);
       if(send(sock,buf, sizeof(buf)+1, 0) != rcvlen)  {
 	perror("send()");
@@ -401,7 +399,9 @@ int srv_rcv( char* host, int port)
 	     printf("FREE MEM: %lu\n", cpu_rcv_array[i]->free_mem);
 	     printf("FREE TOT: %lu\n", cpu_rcv_array[i]->total_mem);
 
-	     printf("Interface: %6s\n", if_rcv_array[i]->name);
+	     printf("Interface: %s\n", if_rcv_array[i]->name);
+	     printf("IP: <%s>\n", if_rcv_array[i]->ip);
+	     
 	    close(cltsck);
 	   
   }
