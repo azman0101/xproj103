@@ -123,6 +123,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 
 if (server_mode == 1) {
 srv_rcv(host_or_ip, port);
+
 exit(1);
 }
 ip_get(ipaddress);
@@ -149,7 +150,6 @@ if ((ipaddress != NULL) && (cpuinfo != NULL))
 }
 
 free_ipaddress(ipaddress);
-free(cpuinfo);
 exit(0);
 
 }
