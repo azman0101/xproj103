@@ -20,11 +20,11 @@ Name=New Native Application Configuration
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=-a 192.168.1.104 -p 1050 -S 3
+Arguments=-a 192.168.1.104 -p 1050 -s
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=default
-Executable=file:///home/azman/xproj103/build/src/xproj103
+Executable=file:///home/azman/xproj103/src/xproj103
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=
 Use External Terminal=false

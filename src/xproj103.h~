@@ -233,17 +233,39 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
 
 bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
 {
+  int lenip, lenname;
+   if (xdrs->x_op == XDR_DECODE) // (xdrs->x_op == XDR_DECODE) ? ...
+    {
+        ifstruc->name = (char*)malloc(1024);
+	ifstruc->ip = (char*)malloc(1024);
+	lenname = 1024;
+	lenip = 1024;
+      
+    } else {
+      
+      lenname = strlen(ifstruc->name)+1;
+      lenip = strlen(ifstruc->ip)+1;
 
-   if ( xdr_string(xdrs, &ifstruc->name, strlen(ifstruc->name)+1) && xdr_string(xdrs, &ifstruc->ip, strlen(ifstruc->ip)+1))
-      return TRUE;
-    return FALSE;
+    } 
+   
+   if ( xdr_string(xdrs, &ifstruc->name, lenname) && xdr_string(xdrs, &ifstruc->ip, lenip))
+   {   
+     return 1;
+   } else
+   {   
+     free(ifstruc->name);
+     free(ifstruc->ip);
+     return 0;
+   } 
+    
+   //desallouer la memoire alloué à ip et name si le chemin 0 est empreinté.
 }
 
 bool_t xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
 {
     if ( xdr_u_long(xdrs, (long unsigned int*)&cpustruc->cpu_use) && xdr_u_long(xdrs, &cpustruc->free_mem) && xdr_u_long(xdrs, &cpustruc->total_mem ))
-      return TRUE;
-    return FALSE;
+      return 1;
+    return 0;
 }
 
 
@@ -318,7 +340,7 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 int srv_rcv( char* host, int port)
 {
   
-  int sock, cltsck, rcved,i;
+  int sock, cltsck, rcved,i, j;
   char buff[8192];
   XDR xdrs;
   struct_if** if_rcv_array;
@@ -365,13 +387,13 @@ int srv_rcv( char* host, int port)
       perror("if_rcv_array memory allocation");
       exit(EXIT_FAILURE);
    }
-    
-
  	/* Run until cancelled */
+	
+
   for ( i = 0;;i++) {
            unsigned int clientlen = sizeof(clt_sin);
 	   cpu_rcv_array[i] = calloc(1, sizeof(struct_cpu));
-	   if_rcv_array[i] = calloc(1, sizeof(struct_if));
+	   if_rcv_array[j] = calloc(1, sizeof(struct_if));
 	   	  
            /* Wait for client connection */
            if ((cltsck = accept(sock, (struct sockaddr *)&clt_sin, &clientlen)) < 0) 
@@ -389,13 +411,19 @@ int srv_rcv( char* host, int port)
 	   
 	     xdrmem_create(&xdrs, buff, sizeof(buff), XDR_DECODE);
 	     xdr_cpu(&xdrs, cpu_rcv_array[i]);
-	     xdr_if(&xdrs, if_rcv_array[i]);
+	     int test;
+	     for (j = 0; xdr_if(&xdrs, if_rcv_array[j]);)
+	     { 
+	       printf("Interface: %s\n", if_rcv_array[j]->name);
+	       printf("IP: <%s>\n", if_rcv_array[j]->ip);
+	       j++;
+	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
+	      }
 	     printf("CPU: %lu\n", (long unsigned)cpu_rcv_array[i]->cpu_use);
 	     printf("FREE MEM: %lu\n", cpu_rcv_array[i]->free_mem);
 	     printf("FREE TOT: %lu\n", cpu_rcv_array[i]->total_mem);
 
-	     printf("Interface: %s\n", if_rcv_array[i]->name);
-	     printf("IP: <%s>\n", if_rcv_array[i]->ip);
+
 	     
 	    close(cltsck);
 	   
