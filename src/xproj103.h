@@ -153,7 +153,7 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
     unsigned long pgpgin[2], pgpgout[2], pswpin[2], pswpout[2];
     unsigned int intr[2], ctxt[2];
     unsigned int sleep_half; 
-    unsigned long i, kb_per_page = (unsigned long)(_SC_PAGESIZE) / 1024ul;
+    unsigned long i;
     int debt = 0;  // handle idle ticks running backwards
     long user_hz = sysconf(_SC_CLK_TCK);
 
@@ -220,10 +220,10 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
         Div= duse+dsys+didl+diow+dstl;
         divo2= Div/2UL;
 	
-	avg_cpu += (100*duse+divo2)/Div;
+	avg_cpu += (user_hz*duse+divo2)/Div;
         printf(format,
                unitConvert(kb_main_free),unitConvert(kb_main_total),
-               (unsigned)( (100*duse+divo2)/Div ) /*us*/
+               (unsigned)( (user_hz*duse+divo2)/Div ) /*us*/
                );
     }
   cpu_array->cpu_use = avg_cpu/num_updates;
@@ -233,10 +233,10 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
 
 bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
 {
-  int lenip, lenname;
+  long unsigned int lenip, lenname;
    if (xdrs->x_op == XDR_DECODE) // (xdrs->x_op == XDR_DECODE) ? ...
     {
-       // if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
+        if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
         ifstruc->name = (char*)malloc(1024);
 	ifstruc->ip = (char*)malloc(1024);
 	lenname = 1024;
@@ -244,12 +244,12 @@ bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
       
     } else {
       
-      lenname = strlen(ifstruc->name)+1;
-      lenip = strlen(ifstruc->ip)+1;
+      lenname = strlen(ifstruc->name)+1lu;
+      lenip = strlen(ifstruc->ip)+1lu;
 
     } 
    
-   if ( xdr_string(xdrs, &ifstruc->name, lenname) && xdr_string(xdrs, &ifstruc->ip, lenip))
+   if ( xdr_string(xdrs, &ifstruc->name, (u_int)lenname) && xdr_string(xdrs, &ifstruc->ip, (u_int)lenip))
    {   
      return 1;
    } else
@@ -428,7 +428,8 @@ int srv_rcv( char* host, int port)
 	       j++;
 	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
 	      }
-
+	      free(if_rcv_array[j]); // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 
+	    
 
 	     
 	    close(cltsck);
