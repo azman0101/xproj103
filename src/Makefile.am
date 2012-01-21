@@ -1,4 +1,6 @@
-bin_PROGRAMS = xproj103
-xproj103_SOURCES = main.c
+bin_PROGRAMS = server client
+server_SOURCES = server.c
+client_SOURCES = client.c
 
-xproj103_LDADD = -lproc
+server_LDADD = -lproc
+client_LDADD = -lproc

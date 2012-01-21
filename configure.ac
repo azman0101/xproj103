@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.67])
 AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
-AC_CONFIG_SRCDIR([src/main.c])
+AC_CONFIG_SRCDIR([src/server.c],[src/client.c])
 AM_INIT_AUTOMAKE
 #AC_CONFIG_HEADERS([config.h])
 
