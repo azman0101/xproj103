@@ -1,6 +1,7 @@
 bin_PROGRAMS = server client
-server_SOURCES = server.c
-client_SOURCES = client.c
+server_SOURCES = server.c xproj103.h
+client_SOURCES = client.c xproj103.h
 
-server_LDADD = -lproc
+server_LDADD = -lproc 
 client_LDADD = -lproc
+

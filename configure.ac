@@ -2,13 +2,13 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
+AC_INIT([monitoring103], [0.3.1], [azman0101@hotmail.com])
 AC_CONFIG_SRCDIR([src/server.c],[src/client.c])
 AM_INIT_AUTOMAKE
-#AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC(clang llvm-gcc gcc)
 AC_PROG_MAKE_SET
 
 # Checks for libraries.

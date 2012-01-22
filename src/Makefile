@@ -16,10 +16,10 @@
 
 
 
-pkgdatadir = $(datadir)/full-package-name
-pkgincludedir = $(includedir)/full-package-name
-pkglibdir = $(libdir)/full-package-name
-pkglibexecdir = $(libexecdir)/full-package-name
+pkgdatadir = $(datadir)/monitoring103
+pkgincludedir = $(includedir)/monitoring103
+pkglibdir = $(libdir)/monitoring103
+pkglibexecdir = $(libexecdir)/monitoring103
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -40,6 +40,7 @@ am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
+CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
@@ -50,7 +51,7 @@ client_DEPENDENCIES =
 am_server_OBJECTS = server.$(OBJEXT)
 server_OBJECTS = $(am_server_OBJECTS)
 server_DEPENDENCIES =
-DEFAULT_INCLUDES = -I.
+DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
@@ -69,13 +70,13 @@ AUTOCONF = ${SHELL} /home/azman/xproj103/missing --run autoconf
 AUTOHEADER = ${SHELL} /home/azman/xproj103/missing --run autoheader
 AUTOMAKE = ${SHELL} /home/azman/xproj103/missing --run automake-1.11
 AWK = mawk
-CC = gcc
+CC = clang
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = gcc -E
+CPP = clang -E
 CPPFLAGS = 
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"FULL-PACKAGE-NAME\" -DPACKAGE_TARNAME=\"full-package-name\" -DPACKAGE_VERSION=\"VERSION\" -DPACKAGE_STRING=\"FULL-PACKAGE-NAME\ VERSION\" -DPACKAGE_BUGREPORT=\"BUG-REPORT-ADDRESS\" -DPACKAGE_URL=\"\" -DPACKAGE=\"full-package-name\" -DVERSION=\"VERSION\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_UNISTD_H=1 -DHAVE_PROC_DEVNAME_H=1 -DHAVE_PROC_WCHAN_H=1 -DHAVE_PROC_PROCPS_H=1 -DHAVE_PROC_READPROC_H=1 -DHAVE_PROC_ESCAPE_H=1 -DHAVE_PROC_SIG_H=1 -DHAVE_PROC_SYSINFO_H=1 -DHAVE_PROC_VERSION_H=1 -DHAVE_PROC_WHATTIME_H=1
+DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
@@ -95,23 +96,23 @@ LTLIBOBJS =
 MAKEINFO = ${SHELL} /home/azman/xproj103/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
-PACKAGE = full-package-name
-PACKAGE_BUGREPORT = BUG-REPORT-ADDRESS
-PACKAGE_NAME = FULL-PACKAGE-NAME
-PACKAGE_STRING = FULL-PACKAGE-NAME VERSION
-PACKAGE_TARNAME = full-package-name
+PACKAGE = monitoring103
+PACKAGE_BUGREPORT = azman0101@hotmail.com
+PACKAGE_NAME = monitoring103
+PACKAGE_STRING = monitoring103 0.3.1
+PACKAGE_TARNAME = monitoring103
 PACKAGE_URL = 
-PACKAGE_VERSION = VERSION
+PACKAGE_VERSION = 0.3.1
 PATH_SEPARATOR = :
 SET_MAKE = 
 SHELL = /bin/bash
 STRIP = 
-VERSION = VERSION
+VERSION = 0.3.1
 abs_builddir = /home/azman/xproj103/src
 abs_srcdir = /home/azman/xproj103/src
 abs_top_builddir = /home/azman/xproj103
 abs_top_srcdir = /home/azman/xproj103
-ac_ct_CC = gcc
+ac_ct_CC = clang
 am__include = include
 am__leading_dot = .
 am__quote = 
@@ -149,9 +150,9 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-server_SOURCES = server.c
-client_SOURCES = client.c
-server_LDADD = -lproc
+server_SOURCES = server.c xproj103.h
+client_SOURCES = client.c xproj103.h
+server_LDADD = -lproc 
 client_LDADD = -lproc
 all: all-am
 

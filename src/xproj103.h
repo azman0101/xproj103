@@ -271,6 +271,7 @@ bool_t xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
 
 
 ////////////////////////////////////////////////////////////////////////////
+#ifdef CLIENT 
 
 int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 {
@@ -336,6 +337,7 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   return 0;
 }
 
+#endif
 ////////////////////////////////////////////////////////////////////////////
 
 int srv_rcv( char* host, int port)
