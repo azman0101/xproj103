@@ -71,23 +71,25 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
        switch (ch) {
            case 'a':  
                host_or_ip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
-               printf("Option a, not --addr. Argument %s.\n", host_or_ip);
+               printf("Option --addr active sur interface %s.\n", host_or_ip);
                break;
            case 's':
-               /* 's' and '--server' are confused (aliased) */
-	       server_mode = 1;
-               printf("Option s, or --server.\n");
-               break;
+               /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
+
+                i = atoi(optarg);
+                num_updates = (i < 11) && (i > 1) ? i : 10;
+               printf("Option -S --sample active, [2 - 10].\n");
+		break;
            case 'S':
                /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
 	       
 	       i = atoi(optarg);
 	       num_updates = (i < 11) && (i > 1) ? i : 10;
-               printf("Option -S --sample activée, [2 - 10].\n");
+               printf("Option -S --sample active, [2 - 10].\n");
                break;
            case 'p':
                port = atoi(optarg);
-               printf("Option p, not --port. Argument %d.\n", port);
+               printf("Option --port active sur le port %d.\n", port);
                break;
            case 0:     /* this is returned for long options with option[i].flag set (not NULL). */
                        /* the flag itself will point out the option recognized, and long_opt_index is now relevant */
@@ -95,8 +97,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 		   case 'a':
                        /* '--check' is managed here */
                        host_or_ip = optarg;
-                       printf("Option --addr, not -a (Array index: %d). Argument: %s.\n", long_opt_index, host_or_ip);
-		      
+                       printf("Option --addr active sur interface %s.\n", host_or_ip);
                        break;
                    case 'S':
                         /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
@@ -114,10 +115,11 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                }
                break;
            case 'h':   /* mind that h is not described in the long option list */
-               printf("Usage: cmd [-a or --addr] [-b or --back] [-c or --check] [-x or --extra]\n en mode client, -a ou -addr indique l'adresse du serveur.\n En mode serveur, -s ou -server, -a ou -addr indique l'adresse que le serveur écoutera, si le paramètre n'est pas renseigné,\n le serveur écoutera toutes les interfaces.\n ");
-               break;
+               printf("%s %s \n\tUsage: cmd [-a or --addr] [-p or --port] [-s or --server] [-S or --sample]\n\n\t - En mode client, -a ou -addr indique l'adresse du serveur.\n\t - En mode serveur, -s ou -server, -a ou -addr indique l'adresse que le serveur écoutera, si le paramètre n'est pas renseigné, le serveur écoutera toutes les interfaces.\n\n ", PACKAGE_NAME, PACKAGE_VERSION);
+               exit(EXIT_SUCCESS);
+	       break;
            default:
-               printf("You, lamah!\n");
+               printf("Args Error!\n");
        }
     }
     

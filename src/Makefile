@@ -16,10 +16,10 @@
 
 
 
-pkgdatadir = $(datadir)/monitoring103
-pkgincludedir = $(includedir)/monitoring103
-pkglibdir = $(libdir)/monitoring103
-pkglibexecdir = $(libexecdir)/monitoring103
+pkgdatadir = $(datadir)/surveillance
+pkgincludedir = $(includedir)/surveillance
+pkglibdir = $(libdir)/surveillance
+pkglibexecdir = $(libexecdir)/surveillance
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -96,12 +96,12 @@ LTLIBOBJS =
 MAKEINFO = ${SHELL} /home/azman/xproj103/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
-PACKAGE = monitoring103
+PACKAGE = surveillance
 PACKAGE_BUGREPORT = azman0101@hotmail.com
-PACKAGE_NAME = monitoring103
-PACKAGE_STRING = monitoring103 0.3.1
-PACKAGE_TARNAME = monitoring103
-PACKAGE_URL = 
+PACKAGE_NAME = surveillance
+PACKAGE_STRING = surveillance 0.3.1
+PACKAGE_TARNAME = surveillance
+PACKAGE_URL = https://github.com/azman0101/xproj103
 PACKAGE_VERSION = 0.3.1
 PATH_SEPARATOR = :
 SET_MAKE = 
