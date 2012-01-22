@@ -25,6 +25,8 @@
 #include <rpc/xdr.h>
 #include <signal.h>
 #include <sysexits.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -51,12 +53,12 @@ int main(int argc,char* argv[])
 const char format[]="%6lu %6lu %2u\n";
 struct_if** ipaddress;
 struct_cpu* cpuinfo;
-int nb,i;
-ipaddress = malloc(sizeof(struct_if));
-cpuinfo = malloc(sizeof(struct_cpu));
-char ch;                   /* service variables */
+int i = 0;
+ipaddress = malloc(sizeof(struct_if*));
+cpuinfo = calloc(1, sizeof(struct_cpu));
+char ch = ' ';                   /* service variables */
 int long_opt_index = 0;
-int longval, port = 5333, server_mode = 0;
+int longval = 0, port = 5333, server_mode = 0;
 char *host_or_ip = NULL;
 
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
@@ -71,17 +73,15 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
     while ((ch = getopt_long(argc, argv, "+a:S:hp:s", long_options, &long_opt_index)) != -1) {
        switch (ch) {
            case 'a': 
-	       if (isIpV4Address(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
+	       if (!isIpAddress(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
                host_or_ip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
                printf("Option --addr active sur interface %s.\n", host_or_ip);
                break;
            case 's':
-               /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
 
-                i = atoi(optarg);
-                num_updates = (i < 11) && (i > 1) ? i : 10;
-               printf("Option -S --sample active, [2 - 10].\n");
-		break;
+	       server_mode = 1;
+               printf("Option s, or --server.\n");
+	      break;
            case 'S':
                /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
 	       
@@ -101,6 +101,11 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        host_or_ip = optarg;
                        printf("Option --addr active sur interface %s.\n", host_or_ip);
                        break;
+		   case 's':
+
+			server_mode = 1;
+			printf("Option s, or --server.\n");
+			break;
                    case 'S':
                         /* 'S' et '--sample' donne la taille de l'échantillon CPU et doit être compris entre 2 et 10 */
 		        
@@ -127,20 +132,19 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
     
 
 if (server_mode == 1) {
-srv_rcv(host_or_ip, port);
+  
+    srv_rcv(host_or_ip, port);
 
-exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
 }
+
 ip_get(ipaddress);
-nb = sizeof(ipaddress);
-
-
 
 cpu_get(cpuinfo);
 
 //TODO: fonction free pour les structures struct_if struct_cpu
 
-for ( i=0; ipaddress[i] != NULL; i++ ) {
+for ( i = 0; ipaddress[i] != NULL; i++ ) {
   
 printf("<%s>  %s\n", ipaddress[i]->ip, ipaddress[i]->name);
   
@@ -153,8 +157,8 @@ if ((ipaddress != NULL) && (cpuinfo != NULL))
   Clt_snd(ipaddress, cpuinfo, host_or_ip, port);
   
 }
-
+free(cpuinfo);
 free_ipaddress(ipaddress);
-exit(0);
+exit(EXIT_SUCCESS);
 
 }

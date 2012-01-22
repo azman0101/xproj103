@@ -8,9 +8,9 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
-AC_PROG_CC(clang llvm-gcc gcc)
+AC_PROG_CC
 AC_PROG_MAKE_SET
-
+AM_PROG_CC_C_O
 # Checks for libraries.
 
 # Checks for header files.

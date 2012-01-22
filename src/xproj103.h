@@ -7,9 +7,6 @@
 static unsigned long dataUnit=1024;
 
 
-//#define FALSE 0
-//#define TRUE 1
-
 static int statMode=VMSTAT;
 static unsigned sleep_time = 1;
 static unsigned long num_updates = 8;
@@ -32,11 +29,24 @@ typedef struct struct_cpu {
 }struct_cpu;
 
 ////////////////////////////////////////////////////////////////////////////
-int isIpV4Address(char *ipAddress)
+int isIpAddress(char *ipAddress)
 {
     struct sockaddr_in sa;
-    int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+    struct sockaddr_in6 sb;
+    int result = inet_pton(AF_INET , ipAddress, &(sa.sin_addr));
+    if (result == 0) 
+    { 
+      ipAddress = strtok(ipAddress, "%");
+      
+      result = inet_pton(AF_INET6 , ipAddress, &(sb.sin6_addr));
+    }
     return result != 0;
+}
+
+void sighandler(int num_sig, struct siginfo *info, void *rien)
+{
+
+
 }
 
 /*
@@ -57,24 +67,34 @@ void free_ipaddress (struct_if** tofree)
 {
   int i;
 	for ( i=0; tofree[i] != NULL; i++ ) {
-	  if (tofree[i]->ip != NULL)
+	  if (tofree[i]->ip != NULL){
 	    free(tofree[i]->ip);
-	  if (tofree[i]->name != NULL)
+	    tofree[i]->ip = NULL;
+	  }
+	  if (tofree[i]->name != NULL) {
 	    free(tofree[i]->name);
+	    tofree[i]->name = NULL;	
+	  }
 	  free(tofree[i]);
-
+	  tofree[i] = NULL;
 	}
+  free(tofree);
+  tofree = NULL;
+ 
 }
 
 
 /* Code inspiré de l'exemple du man getifaddrs */
 struct_if** ip_get(struct_if **ip_array)
 {
-    struct ifaddrs *ifaddr, *ifa;
+    struct ifaddrs *ifaddr = NULL, *ifa = NULL;
     int family, s,i;
     char host[NI_MAXHOST];
-    if (ip_array == NULL)
-      ip_array = malloc(sizeof(struct_if));
+    
+    if ( ip_array == NULL) {
+	  perror("ip_array memory allocation");
+	  exit(EXIT_FAILURE);
+    }
     
     if (getifaddrs(&ifaddr) == -1) {
         perror("getifaddrs");
@@ -105,8 +125,9 @@ struct_if** ip_get(struct_if **ip_array)
             // exclure le loopback des ip à récolter.
 	    if (strcmp(ifa->ifa_name, "lo")) 
 	    {
-	    
-		ip_array[i] = calloc(1, sizeof(struct_if));
+		if ( ip_array[i] == NULL) {
+		    ip_array[i] = (struct_if*)calloc(1, sizeof(struct_if));
+		}
 		
 		if ( ip_array[i] == NULL) {
 		    perror("ip_array memory allocation");
@@ -114,21 +135,27 @@ struct_if** ip_get(struct_if **ip_array)
 		}
 		
 		//printf("\ttaille: %d\n", strlen(host));
-		ip_array[i]->ip =(char*)malloc(strlen(host)+1);
+		if ( ip_array[i]->ip == NULL)
+		    ip_array[i]->ip = calloc(1, strlen(host)+1);
+		
 		if ( ip_array[i]->ip == NULL) {
 		    perror("ip_array->ip memory allocation");
 		    exit(EXIT_FAILURE);
 		}
 		strncpy(ip_array[i]->ip,host,strlen(host)+1);
 		
-		ip_array[i]->name = (char*)malloc(strlen(ifa->ifa_name)+1);
+		if ( ip_array[i]->name == NULL) 
+		    ip_array[i]->name = calloc(1, strlen(ifa->ifa_name)+1);
 		if ( ip_array[i]->name == NULL) {
 		    perror("ip_array->name memory allocation");
 		    exit(EXIT_FAILURE);
 		}
 		
 		strncpy(ip_array[i]->name,ifa->ifa_name,strlen(ifa->ifa_name)+1);
+		//printf("\taddress: <%s> interface: %s\n address: %X\n", ip_array[i]->ip, ip_array[i]->name, (ip_array[i]));
+		//printf("GET index: %d\n", i);
 		i++;
+	
 	    }
         }
     }
@@ -163,9 +190,10 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
     int debt = 0;  // handle idle ticks running backwards
     long user_hz = sysconf(_SC_CLK_TCK);
 
-    if (cpu_array == NULL)
-      cpu_array = malloc(sizeof(struct_cpu));
-    
+    if ( cpu_array == NULL) {
+      perror("cpu_array memory allocation");
+      exit(EXIT_FAILURE);
+    }
     
     sleep_half=(sleep_time/2);
     
@@ -184,13 +212,6 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
     dstl= *cpu_zzz;
     Div= duse+dsys+didl+diow+dstl;
     divo2= Div/2UL;
-   
-            
-    if ( cpu_array == NULL) {
-      perror("cpu_array memory allocation");
-      exit(EXIT_FAILURE);
-    }
-	    
    
     cpu_array->free_mem = kb_main_free;
     cpu_array->total_mem = kb_main_total;
@@ -237,14 +258,14 @@ struct_cpu * cpu_get(struct_cpu *cpu_array) {
   return cpu_array;
 }
 
-bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
+int xdr_if(XDR* xdrs, struct_if* ifstruc)
 {
   long unsigned int lenip, lenname;
    if (xdrs->x_op == XDR_DECODE) // (xdrs->x_op == XDR_DECODE) ? ...
     {
-        if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
-        ifstruc->name = (char*)malloc(1024);
-	ifstruc->ip = (char*)malloc(1024);
+        //if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
+        ifstruc->name = calloc(1, 1024);
+	ifstruc->ip = calloc(1, 1024);
 	lenname = 1024;
 	lenip = 1024;
       
@@ -260,15 +281,18 @@ bool_t xdr_if(XDR* xdrs, struct_if* ifstruc)
      return 1;
    } else
    {   
+        //desalloue la memoire alloué à ip et name si le chemin 0 est empreinté.
      free(ifstruc->name);
+     ifstruc->name = NULL;
      free(ifstruc->ip);
+     ifstruc->ip = NULL;
      return 0;
    } 
     
-   //desallouer la memoire alloué à ip et name si le chemin 0 est empreinté.
+
 }
 
-bool_t xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
+bool xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
 {
     if ( xdr_u_long(xdrs, (long unsigned int*)&cpustruc->cpu_use) && xdr_u_long(xdrs, &cpustruc->free_mem) && xdr_u_long(xdrs, &cpustruc->total_mem ))
       return 1;
@@ -278,14 +302,15 @@ bool_t xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
 
 ////////////////////////////////////////////////////////////////////////////
 
-int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
+bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 {
   int sock, rcved, rcvlen,i;
-  FILE *t;
   XDR xdrs;
   char buf[8192];
-  struct hostent *hostinfo = gethostbyname(host);
+  struct hostent *hostinfo =  { 0 };
+  hostinfo = gethostbyname(host);
   
+  memset(buf, 0, 8192);
   // Si l'initialisation de la structure hostinfo échoue.
   if (hostinfo == NULL)
   {
@@ -295,7 +320,7 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   
   //Si la création du socket échoue.
   struct sockaddr_in sin = { 0 }; 
-  sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
+  sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock == -1)
   {
 	perror("socket()");
@@ -310,6 +335,9 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   // Si la connection échoue.
   if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) 
   {
+    free(cpu_array);
+    free_ipaddress(if_array);
+   
     perror("connect()");
     exit(errno);
   }
@@ -339,12 +367,12 @@ int Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   
   }
 
-  return 0;
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-int srv_rcv( char* host, int port)
+bool srv_rcv( char* host, int port)
 {
   
   int sock, cltsck, rcved,i, j;
@@ -380,15 +408,15 @@ int srv_rcv( char* host, int port)
     perror("listen()");
     exit(errno);
   }
-     
-   cpu_rcv_array = (struct_cpu**)malloc(sizeof(struct_cpu));
+   if ( cpu_rcv_array == NULL)
+      cpu_rcv_array = malloc(sizeof(struct_cpu*));
    
    if ( cpu_rcv_array == NULL) {
       perror("cpu_rcv_array memory allocation");
       exit(EXIT_FAILURE);
    }
-    
-   if_rcv_array = (struct_if**)malloc(sizeof(struct_if));
+   if ( if_rcv_array == NULL)
+      if_rcv_array = malloc(sizeof(struct_if*));
    
    if ( if_rcv_array == NULL) {
       perror("if_rcv_array memory allocation");
@@ -400,6 +428,8 @@ int srv_rcv( char* host, int port)
   i = 0;
   for (;;) {
            unsigned int clientlen = sizeof(clt_sin);
+	 //  if (cpu_rcv_array[i] == NULL)
+	//   printf("0x%X\n", cpu_rcv_array[i]);
 	   cpu_rcv_array[i] = calloc(1, sizeof(struct_cpu));
 	   if (if_rcv_array[j] == NULL)
 		if_rcv_array[j] = calloc(1, sizeof(struct_if));
@@ -429,20 +459,19 @@ int srv_rcv( char* host, int port)
 	     	
 	     while (xdr_if(&xdrs, if_rcv_array[j]))
 	     { 
+	       if (!isIpAddress(if_rcv_array[j]->ip)) break;
 	       printf("Interface: %s\n", if_rcv_array[j]->name);
-	       printf("IP: <%s>\n", if_rcv_array[j]->ip);
+	       printf("IP: <%s>\n", if_rcv_array[j]->ip);	     
 	       j++;
 	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
 	      }
-	      free(if_rcv_array[j]); // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 
-	    
-
-	     
+	      free(if_rcv_array[j]); // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 	 
+	      if_rcv_array[j] = NULL;
 	    close(cltsck);
 	   i++;
   }
   free(cpu_rcv_array);
-  free(if_rcv_array);          
+  free_ipaddress(if_rcv_array);          
  
-  return 0;
+  return false;
 }

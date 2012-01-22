@@ -35,7 +35,7 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	depcomp install-sh missing
+	compile depcomp install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -105,10 +105,10 @@ AUTOCONF = ${SHELL} /home/azman/xproj103/missing --run autoconf
 AUTOHEADER = ${SHELL} /home/azman/xproj103/missing --run autoheader
 AUTOMAKE = ${SHELL} /home/azman/xproj103/missing --run automake-1.11
 AWK = mawk
-CC = clang
+CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = clang -E
+CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -147,7 +147,7 @@ abs_builddir = /home/azman/xproj103
 abs_srcdir = /home/azman/xproj103
 abs_top_builddir = /home/azman/xproj103
 abs_top_srcdir = /home/azman/xproj103
-ac_ct_CC = clang
+ac_ct_CC = gcc
 am__include = include
 am__leading_dot = .
 am__quote = 

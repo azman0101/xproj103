@@ -54,74 +54,90 @@ configure:2379: found /usr/bin/mawk
 configure:2390: result: mawk
 configure:2401: checking whether make sets $(MAKE)
 configure:2423: result: yes
-configure:2561: checking for clang
-configure:2577: found /usr/bin/clang
-configure:2588: result: clang
-configure:2619: checking for C compiler version
-configure:2628: clang --version >&5
-clang version 2.8 (branches/release_28)
-Target: x86_64-pc-linux-gnu
+configure:2555: checking for gcc
+configure:2571: found /usr/bin/gcc
+configure:2582: result: gcc
+configure:2811: checking for C compiler version
+configure:2820: gcc --version >&5
+gcc (Ubuntu/Linaro 4.5.2-8ubuntu4) 4.5.2
+Copyright (C) 2010 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+configure:2831: $? = 0
+configure:2820: gcc -v >&5
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=/usr/lib/x86_64-linux-gnu/gcc/x86_64-linux-gnu/4.5.2/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu/Linaro 4.5.2-8ubuntu4' --with-bugurl=file:///usr/share/doc/gcc-4.5/README.Bugs --enable-languages=c,c++,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.5 --enable-shared --enable-multiarch --with-multiarch-defaults=x86_64-linux-gnu --enable-linker-build-id --with-system-zlib --libexecdir=/usr/lib/x86_64-linux-gnu --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.5 --libdir=/usr/lib/x86_64-linux-gnu --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-plugin --enable-gold --enable-ld=default --with-plugin-ld=ld.gold --enable-objc-gc --disable-werror --with-arch-32=i686 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
-configure:2639: $? = 0
-configure:2628: clang -v >&5
-clang version 2.8 (branches/release_28)
-Target: x86_64-pc-linux-gnu
-Thread model: posix
-configure:2639: $? = 0
-configure:2628: clang -V >&5
-clang: error: argument to '-V' is missing (expected 1 value)
-clang: error: no input files
-configure:2639: $? = 1
-configure:2628: clang -qversion >&5
-clang: error: no input files
-configure:2639: $? = 1
-configure:2659: checking whether the C compiler works
-configure:2681: clang    conftest.c  >&5
-configure:2685: $? = 0
-configure:2733: result: yes
-configure:2736: checking for C compiler default output file name
-configure:2738: result: a.out
-configure:2744: checking for suffix of executables
-configure:2751: clang -o conftest    conftest.c  >&5
-configure:2755: $? = 0
-configure:2777: result: 
-configure:2799: checking whether we are cross compiling
-configure:2807: clang -o conftest    conftest.c  >&5
-configure:2811: $? = 0
-configure:2818: ./conftest
-configure:2822: $? = 0
-configure:2837: result: no
-configure:2842: checking for suffix of object files
-configure:2864: clang -c   conftest.c >&5
-configure:2868: $? = 0
-configure:2889: result: o
-configure:2893: checking whether we are using the GNU C compiler
-configure:2912: clang -c   conftest.c >&5
-configure:2912: $? = 0
-configure:2921: result: yes
-configure:2930: checking whether clang accepts -g
-configure:2950: clang -c -g  conftest.c >&5
-configure:2950: $? = 0
-configure:2991: result: yes
-configure:3008: checking for clang option to accept ISO C89
-configure:3072: clang  -c -g -O2  conftest.c >&5
-configure:3072: $? = 0
-configure:3085: result: none needed
-configure:3116: checking for style of include used by make
-configure:3144: result: GNU
-configure:3169: checking dependency style of clang
-configure:3279: result: gcc3
-configure:3294: checking whether make sets $(MAKE)
-configure:3316: result: yes
-configure:3335: checking how to run the C preprocessor
-configure:3366: clang -E  conftest.c
-configure:3366: $? = 0
-configure:3380: clang -E  conftest.c
-conftest.c:11:10: fatal error: 'ac_nonexistent.h' file not found
-#include <ac_nonexistent.h>
-         ^
-1 error generated.
-configure:3380: $? = 1
+gcc version 4.5.2 (Ubuntu/Linaro 4.5.2-8ubuntu4) 
+configure:2831: $? = 0
+configure:2820: gcc -V >&5
+gcc: '-V' option must have argument
+configure:2831: $? = 1
+configure:2820: gcc -qversion >&5
+gcc: unrecognized option '-qversion'
+gcc: no input files
+configure:2831: $? = 1
+configure:2851: checking whether the C compiler works
+configure:2873: gcc    conftest.c  >&5
+configure:2877: $? = 0
+configure:2925: result: yes
+configure:2928: checking for C compiler default output file name
+configure:2930: result: a.out
+configure:2936: checking for suffix of executables
+configure:2943: gcc -o conftest    conftest.c  >&5
+configure:2947: $? = 0
+configure:2969: result: 
+configure:2991: checking whether we are cross compiling
+configure:2999: gcc -o conftest    conftest.c  >&5
+configure:3003: $? = 0
+configure:3010: ./conftest
+configure:3014: $? = 0
+configure:3029: result: no
+configure:3034: checking for suffix of object files
+configure:3056: gcc -c   conftest.c >&5
+configure:3060: $? = 0
+configure:3081: result: o
+configure:3085: checking whether we are using the GNU C compiler
+configure:3104: gcc -c   conftest.c >&5
+configure:3104: $? = 0
+configure:3113: result: yes
+configure:3122: checking whether gcc accepts -g
+configure:3142: gcc -c -g  conftest.c >&5
+configure:3142: $? = 0
+configure:3183: result: yes
+configure:3200: checking for gcc option to accept ISO C89
+configure:3264: gcc  -c -g -O2  conftest.c >&5
+configure:3264: $? = 0
+configure:3277: result: none needed
+configure:3308: checking for style of include used by make
+configure:3336: result: GNU
+configure:3361: checking dependency style of gcc
+configure:3471: result: gcc3
+configure:3486: checking whether make sets $(MAKE)
+configure:3508: result: yes
+configure:3518: checking whether gcc and cc understand -c and -o together
+configure:3549: gcc -c conftest.c -o conftest2.o >&5
+configure:3553: $? = 0
+configure:3559: gcc -c conftest.c -o conftest2.o >&5
+configure:3563: $? = 0
+configure:3574: cc -c conftest.c >&5
+configure:3578: $? = 0
+configure:3586: cc -c conftest.c -o conftest2.o >&5
+configure:3590: $? = 0
+configure:3596: cc -c conftest.c -o conftest2.o >&5
+configure:3600: $? = 0
+configure:3618: result: yes
+configure:3652: checking how to run the C preprocessor
+configure:3683: gcc -E  conftest.c
+configure:3683: $? = 0
+configure:3697: gcc -E  conftest.c
+conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
+compilation terminated.
+configure:3697: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME "surveillance"
@@ -134,15 +150,13 @@ configure: failed program was:
 | #define VERSION "0.3.1"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3405: result: clang -E
-configure:3425: clang -E  conftest.c
-configure:3425: $? = 0
-configure:3439: clang -E  conftest.c
-conftest.c:11:10: fatal error: 'ac_nonexistent.h' file not found
-#include <ac_nonexistent.h>
-         ^
-1 error generated.
-configure:3439: $? = 1
+configure:3722: result: gcc -E
+configure:3742: gcc -E  conftest.c
+configure:3742: $? = 0
+configure:3756: gcc -E  conftest.c
+conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
+compilation terminated.
+configure:3756: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME "surveillance"
@@ -155,147 +169,147 @@ configure: failed program was:
 | #define VERSION "0.3.1"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3468: checking for grep that handles long lines and -e
-configure:3526: result: /bin/grep
-configure:3531: checking for egrep
-configure:3593: result: /bin/grep -E
-configure:3598: checking for ANSI C header files
-configure:3618: clang -c -g -O2  conftest.c >&5
-configure:3618: $? = 0
-configure:3691: clang -o conftest -g -O2   conftest.c  >&5
-configure:3691: $? = 0
-configure:3691: ./conftest
-configure:3691: $? = 0
-configure:3702: result: yes
-configure:3715: checking for sys/types.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for sys/stat.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for stdlib.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for string.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for memory.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for strings.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for inttypes.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for stdint.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3715: checking for unistd.h
-configure:3715: clang -c -g -O2  conftest.c >&5
-configure:3715: $? = 0
-configure:3715: result: yes
-configure:3730: checking for unistd.h
-configure:3730: result: yes
-configure:3730: checking proc/devname.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/devname.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/devname.h
-configure:3730: result: yes
-configure:3730: checking proc/wchan.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/wchan.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/wchan.h
-configure:3730: result: yes
-configure:3730: checking proc/procps.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/procps.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/procps.h
-configure:3730: result: yes
-configure:3730: checking proc/readproc.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/readproc.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/readproc.h
-configure:3730: result: yes
-configure:3730: checking proc/escape.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/escape.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/escape.h
-configure:3730: result: yes
-configure:3730: checking proc/sig.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/sig.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/sig.h
-configure:3730: result: yes
-configure:3730: checking proc/sysinfo.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/sysinfo.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/sysinfo.h
-configure:3730: result: yes
-configure:3730: checking proc/version.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/version.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/version.h
-configure:3730: result: yes
-configure:3730: checking proc/whattime.h usability
-configure:3730: clang -c -g -O2  conftest.c >&5
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking proc/whattime.h presence
-configure:3730: clang -E  conftest.c
-configure:3730: $? = 0
-configure:3730: result: yes
-configure:3730: checking for proc/whattime.h
-configure:3730: result: yes
-configure:3867: creating ./config.status
+configure:3785: checking for grep that handles long lines and -e
+configure:3843: result: /bin/grep
+configure:3848: checking for egrep
+configure:3910: result: /bin/grep -E
+configure:3915: checking for ANSI C header files
+configure:3935: gcc -c -g -O2  conftest.c >&5
+configure:3935: $? = 0
+configure:4008: gcc -o conftest -g -O2   conftest.c  >&5
+configure:4008: $? = 0
+configure:4008: ./conftest
+configure:4008: $? = 0
+configure:4019: result: yes
+configure:4032: checking for sys/types.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for sys/stat.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for stdlib.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for string.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for memory.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for strings.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for inttypes.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for stdint.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4032: checking for unistd.h
+configure:4032: gcc -c -g -O2  conftest.c >&5
+configure:4032: $? = 0
+configure:4032: result: yes
+configure:4047: checking for unistd.h
+configure:4047: result: yes
+configure:4047: checking proc/devname.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/devname.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/devname.h
+configure:4047: result: yes
+configure:4047: checking proc/wchan.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/wchan.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/wchan.h
+configure:4047: result: yes
+configure:4047: checking proc/procps.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/procps.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/procps.h
+configure:4047: result: yes
+configure:4047: checking proc/readproc.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/readproc.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/readproc.h
+configure:4047: result: yes
+configure:4047: checking proc/escape.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/escape.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/escape.h
+configure:4047: result: yes
+configure:4047: checking proc/sig.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/sig.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/sig.h
+configure:4047: result: yes
+configure:4047: checking proc/sysinfo.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/sysinfo.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/sysinfo.h
+configure:4047: result: yes
+configure:4047: checking proc/version.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/version.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/version.h
+configure:4047: result: yes
+configure:4047: checking proc/whattime.h usability
+configure:4047: gcc -c -g -O2  conftest.c >&5
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking proc/whattime.h presence
+configure:4047: gcc -E  conftest.c
+configure:4047: $? = 0
+configure:4047: result: yes
+configure:4047: checking for proc/whattime.h
+configure:4047: result: yes
+configure:4184: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -366,10 +380,11 @@ ac_cv_path_GREP=/bin/grep
 ac_cv_path_install='/usr/bin/install -c'
 ac_cv_path_mkdir=/bin/mkdir
 ac_cv_prog_AWK=mawk
-ac_cv_prog_CPP='clang -E'
-ac_cv_prog_ac_ct_CC=clang
+ac_cv_prog_CPP='gcc -E'
+ac_cv_prog_ac_ct_CC=gcc
 ac_cv_prog_cc_c89=
 ac_cv_prog_cc_g=yes
+ac_cv_prog_cc_gcc_c_o=yes
 ac_cv_prog_make_make_set=yes
 am_cv_CC_dependencies_compiler_type=gcc3
 
@@ -386,10 +401,10 @@ AUTOCONF='${SHELL} /home/azman/xproj103/missing --run autoconf'
 AUTOHEADER='${SHELL} /home/azman/xproj103/missing --run autoheader'
 AUTOMAKE='${SHELL} /home/azman/xproj103/missing --run automake-1.11'
 AWK='mawk'
-CC='clang'
+CC='gcc'
 CCDEPMODE='depmode=gcc3'
 CFLAGS='-g -O2'
-CPP='clang -E'
+CPP='gcc -E'
 CPPFLAGS=''
 CYGPATH_W='echo'
 DEFS='-DHAVE_CONFIG_H'
@@ -423,7 +438,7 @@ SET_MAKE=''
 SHELL='/bin/bash'
 STRIP=''
 VERSION='0.3.1'
-ac_ct_CC='clang'
+ac_ct_CC='gcc'
 am__EXEEXT_FALSE=''
 am__EXEEXT_TRUE='#'
 am__fastdepCC_FALSE='#'
