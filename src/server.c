@@ -24,6 +24,7 @@
 #include <getopt.h>
 #include <rpc/xdr.h>
 #include <signal.h>
+#include <sysexits.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -69,7 +70,8 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
     
     while ((ch = getopt_long(argc, argv, "+a:S:hp:s", long_options, &long_opt_index)) != -1) {
        switch (ch) {
-           case 'a':  
+           case 'a': 
+	       if (isIpV4Address(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
                host_or_ip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
                printf("Option --addr active sur interface %s.\n", host_or_ip);
                break;
@@ -91,11 +93,11 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                port = atoi(optarg);
                printf("Option --port active sur le port %d.\n", port);
                break;
-           case 0:     /* this is returned for long options with option[i].flag set (not NULL). */
-                       /* the flag itself will point out the option recognized, and long_opt_index is now relevant */
+           case 0:     
+                     /* branchement utilisé pour les paramètres long */
                switch (longval) {
 		   case 'a':
-                       /* '--check' is managed here */
+                       /* ''a' et '--addr' indique l'hote à contacter par son IP ou son nom.  */
                        host_or_ip = optarg;
                        printf("Option --addr active sur interface %s.\n", host_or_ip);
                        break;
@@ -106,10 +108,10 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 			num_updates = (i < 11) && (i > 1) ? i : 10;
                        printf("Option -S --sample activée, [2 - 10].\n");
                        break;
-                   case 'x':
+                   case 'p':
                        /* '--extra' is managed here */
                        port = atoi(optarg);
-                       printf("Option --port, not -p (Array index: %d). Argument: %d.\n", long_opt_index, port);	  
+                       printf("Option --port active sur le port %d.\n", port);	  
                        break;
                    /* there's no default here */
                }
@@ -127,7 +129,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 if (server_mode == 1) {
 srv_rcv(host_or_ip, port);
 
-exit(1);
+exit(EXIT_SUCCESS);
 }
 ip_get(ipaddress);
 nb = sizeof(ipaddress);

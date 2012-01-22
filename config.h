@@ -56,22 +56,22 @@
 #define HAVE_UNISTD_H 1
 
 /* Name of package */
-#define PACKAGE "monitoring103"
+#define PACKAGE "surveillance"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "azman0101@hotmail.com"
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "monitoring103"
+#define PACKAGE_NAME "surveillance"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "monitoring103 0.3.1"
+#define PACKAGE_STRING "surveillance 0.3.1"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "monitoring103"
+#define PACKAGE_TARNAME "surveillance"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+#define PACKAGE_URL "https://github.com/azman0101/xproj103"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.3.1"

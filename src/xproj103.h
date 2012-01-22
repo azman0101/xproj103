@@ -32,6 +32,12 @@ typedef struct struct_cpu {
 }struct_cpu;
 
 ////////////////////////////////////////////////////////////////////////////
+int isIpV4Address(char *ipAddress)
+{
+    struct sockaddr_in sa;
+    int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+    return result != 0;
+}
 
 /*
 char *safe_strdup (const char *s)

@@ -32,6 +32,12 @@ typedef struct struct_cpu {
 }struct_cpu;
 
 ////////////////////////////////////////////////////////////////////////////
+int isIpV4Address(char *ipAddress)
+{
+    struct sockaddr_in sa;
+    int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+    return result != 0;
+}
 
 /*
 char *safe_strdup (const char *s)
@@ -429,7 +435,7 @@ int srv_rcv( char* host, int port)
 	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
 	      }
 	      free(if_rcv_array[j]); // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 
-	      printf("Apres boucle: <%s>\n", if_rcv_array[j]->ip);
+	    
 
 	     
 	    close(cltsck);
