@@ -53,7 +53,7 @@ int main(int argc,char* argv[])
 const char format[]="%6lu %6lu %2u\n";
 struct_if** ipaddress;
 struct_cpu* cpuinfo;
-struct sigaction a;
+
 int i = 0;
 ipaddress = malloc(sizeof(struct_if*));
 cpuinfo = calloc(1, sizeof(struct_cpu));
@@ -133,8 +133,14 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
     
 
 if (server_mode == 1) {
-  
-    signal(SIGINT, (__sighandler_t)xp_sighandler);
+    struct sigaction a;
+    a.sa_handler = (__sighandler_t) xp_sighandler;
+    sigemptyset(&a.sa_mask);
+    
+    
+    sigaction(SIGTSTP, &a, NULL);
+    sigaction(SIGINT, &a, NULL);
+    sigaction(SIGTERM, &a, NULL);
     srv_rcv(host_or_ip, port);
 
     exit(EXIT_SUCCESS);

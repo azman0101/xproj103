@@ -45,11 +45,40 @@ int isIpAddress(char *ipAddress)
     return result != 0;
 }
 
-__sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *rien)
+__sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *vide)
 {
 
+  struct sigaction rien, ancien;
+  
   printf("SIG: %d\n", num_sig);
-
+  
+  switch(num_sig) {
+    
+    case SIGTSTP:
+	printf("\tMise en pause...\n");
+	rien.sa_handler = SIG_DFL;
+	rien.sa_flags = 0;
+	sigemptyset(&rien.sa_mask);
+	sigaction(SIGTSTP, &rien, &ancien);
+	
+	printf("\tPause.\n");
+	kill(getpid(), SIGSTOP);
+	printf("\tExecution...\n");
+	
+	sigaction(SIGTSTP, &ancien, NULL);
+	printf("\tEn cours.\n");
+    break;
+    
+    case SIGINT:
+      
+    //break;
+    
+    case SIGTERM:
+	//s'occuper de la sortie standard 
+	printf("\tArrêt du serveur...\n");
+	exit(EXIT_SUCCESS);
+    break;
+    }
 }
 
 /*
