@@ -58,14 +58,14 @@ ipaddress = malloc(sizeof(struct_if*));
 cpuinfo = calloc(1, sizeof(struct_cpu));
 char ch = ' ';                   /* service variables */
 int long_opt_index = 0;
-int longval = 0, port = 5333, server_mode = 0;
+int longval = 0, port = 0, server_mode = 0;
 char *host_or_ip = NULL;
 
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
         { "addr", 1, &longval, 'a' },      /* --addr ou -a  */
         { "server", 0, NULL, 's'  },      /* --server ou -s */
         { "sample", 1, &longval, 'S' },  /* retourne 'S', ou retourne 0 et initialise longval à 'S' */
-        { "port", 1, &longval, 'p' },
+        { "port", 1, NULL, 'p' },
         { 0,    0,    0,    0   }       /* terminating -0 item */
     };
     
@@ -73,7 +73,11 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
     while ((ch = getopt_long(argc, argv, "+a:S:hp:s", long_options, &long_opt_index)) != -1) {
        switch (ch) {
            case 'a': 
-	       if (!isIpAddress(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
+	       if (!isIpAddress(optarg)) {
+		 printf("Erreur: L'adresse passée n'est pas une IPv4.\n");
+		 exit(EXIT_FAILURE) ;
+		 
+	      }
                host_or_ip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
                printf("Option --addr active sur interface %s.\n", host_or_ip);
                break;
@@ -91,7 +95,15 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                break;
            case 'p':
                port = atoi(optarg);
-               printf("Option --port active sur le port %d.\n", port);
+	       if ((port < 1) ||  (port > 65535) )
+	       {
+		  perror("Erreur: Port hors plage.\n"); exit(EXIT_FAILURE);
+		} else {
+		  
+		  printf("Option --port active sur le port %d.\n", port);
+		  
+		}
+               
                break;
            case 0:     
                      /* branchement utilisé pour les paramètres long */
@@ -114,9 +126,16 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        printf("Option -S --sample activée, [2 - 10].\n");
                        break;
                    case 'p':
-                       /* '--extra' is managed here */
-                       port = atoi(optarg);
-                       printf("Option --port active sur le port %d.\n", port);	  
+                      port = atoi(optarg);
+		      if ((port < 1) || (port > 65535) )
+		      {
+			  printf("Erreur: Port hors plage.\n"); exit(EXIT_FAILURE);
+			  
+		      } else {
+			  
+			  printf("Option --port active sur le port %d.\n", port);
+			  
+		      }
                        break;
                    /* there's no default here */
                }

@@ -3,6 +3,7 @@
 #define BUFFSIZE      (64*1024) 
 #include <string.h>
 #include <sys/socket.h>
+#include <signal.h>
 
 static unsigned long dataUnit=1024;
 
@@ -34,18 +35,20 @@ int isIpAddress(char *ipAddress)
     struct sockaddr_in sa;
     struct sockaddr_in6 sb;
     int result = inet_pton(AF_INET , ipAddress, &(sa.sin_addr));
-    if (result == 0) 
+    if ((result == 0) && (ipAddress[0] != '\0')) 
     { 
-      ipAddress = strtok(ipAddress, "%");
       
+      ipAddress = strtok(ipAddress, "%");
+
       result = inet_pton(AF_INET6 , ipAddress, &(sb.sin6_addr));
     }
     return result != 0;
 }
 
-void sighandler(int num_sig, struct siginfo *info, void *rien)
+__sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *rien)
 {
 
+  printf("SIG: %d\n", num_sig);
 
 }
 
