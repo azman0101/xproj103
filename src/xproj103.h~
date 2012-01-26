@@ -13,7 +13,6 @@ static unsigned sleep_time = 1;
 static unsigned long num_updates = 8;
 
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 
 typedef struct struct_if {
 	char *ip;
@@ -22,14 +21,27 @@ typedef struct struct_if {
 
 ////////////////////////////////////////////////////////////////////////////
 
-
 typedef struct struct_cpu {
 	unsigned long free_mem;
 	unsigned long total_mem;
 	jiff cpu_use;
 }struct_cpu;
 
+///////////////////////////////////////////////////////////////////////////
+
+int argtoport(char* optarg) {
+	int port = atoi(optarg);
+	if ((port < 1) ||  (port > 65535) )
+	{
+		    perror("Erreur: Port hors plage.\n"); exit(EXIT_FAILURE);
+	} else {	  
+		    printf("Option --port active sur le port %d.\n", port);	  
+	}
+	return port;	
+}
+
 ////////////////////////////////////////////////////////////////////////////
+
 int isIpAddress(char *ipAddress)
 {
     struct sockaddr_in sa;
@@ -44,6 +56,8 @@ int isIpAddress(char *ipAddress)
     }
     return result != 0;
 }
+
+////////////////////////////////////////////////////////////////////////////
 
 __sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *vide)
 {

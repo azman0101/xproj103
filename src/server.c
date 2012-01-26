@@ -27,6 +27,7 @@
 #include <sysexits.h>
 #include <stdbool.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -91,8 +92,8 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                printf("Option -S --sample active, [2 - 10].\n");
                break;
            case 'p':
-               port = atoi(optarg);
-               printf("Option --port active sur le port %d.\n", port);
+	     /* 'p' et '--port' donne le port d'écoute et doit être compris entre 1 et 65535 */
+               port = argtoport(optarg);         
                break;
            case 0:     
                      /* branchement utilisé pour les paramètres long */
@@ -115,9 +116,9 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        printf("Option -S --sample activée, [2 - 10].\n");
                        break;
                    case 'p':
-                       /* '--extra' is managed here */
-                       port = atoi(optarg);
-                       printf("Option --port active sur le port %d.\n", port);	  
+                       /* 'p' et '--port' donne le port d'écoute et doit être compris entre 1 et 65535 */
+                       port = argtoport(optarg);
+                      
                        break;
                    /* there's no default here */
                }
@@ -134,6 +135,8 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 
 if (server_mode == 1) {
     struct sigaction a;
+    pthread_t th1, th2;
+    void* ret;
     a.sa_handler = (__sighandler_t) xp_sighandler;
     sigemptyset(&a.sa_mask);
     
@@ -141,7 +144,13 @@ if (server_mode == 1) {
     sigaction(SIGTSTP, &a, NULL);
     sigaction(SIGINT, &a, NULL);
     sigaction(SIGTERM, &a, NULL);
-    srv_rcv(host_or_ip, port);
+    
+    if (pthread_create(&th1, NULL, srv_rcv, host_or_ip, port) <0 ) {
+	fprintf(stderr, "thread lancé\n");
+    }
+    
+    (void)pthread_join(th1, &ret);
+    //srv_rcv(host_or_ip, port);
 
     exit(EXIT_SUCCESS);
 }

@@ -94,16 +94,8 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                printf("Option -S --sample active, [2 - 10].\n");
                break;
            case 'p':
-               port = atoi(optarg);
-	       if ((port < 1) ||  (port > 65535) )
-	       {
-		  perror("Erreur: Port hors plage.\n"); exit(EXIT_FAILURE);
-		} else {
-		  
-		  printf("Option --port active sur le port %d.\n", port);
-		  
-		}
-               
+	     /* 'p' et '--port' donne le port d'écoute et doit être compris entre 1 et 65535 */
+               port = argtoport(optarg);   
                break;
            case 0:     
                      /* branchement utilisé pour les paramètres long */
@@ -126,17 +118,9 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        printf("Option -S --sample activée, [2 - 10].\n");
                        break;
                    case 'p':
-                      port = atoi(optarg);
-		      if ((port < 1) || (port > 65535) )
-		      {
-			  printf("Erreur: Port hors plage.\n"); exit(EXIT_FAILURE);
-			  
-		      } else {
-			  
-			  printf("Option --port active sur le port %d.\n", port);
-			  
-		      }
-                       break;
+		     /* 'p' et '--port' donne le port d'écoute et doit être compris entre 1 et 65535 */
+		       port = argtoport(optarg);
+		       break;
                    /* there's no default here */
                }
                break;
