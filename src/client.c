@@ -133,13 +133,13 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
        }
     }
     
-
+/*
 if (server_mode == 1) {
   
     srv_rcv(host_or_ip, port);
 
     exit(EXIT_SUCCESS);
-}
+}*/
 
 ip_get(ipaddress);
 

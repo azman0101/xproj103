@@ -26,6 +26,13 @@ typedef struct struct_cpu {
 	unsigned long total_mem;
 	jiff cpu_use;
 }struct_cpu;
+////////////////////////////////////////////////////////////////////////////
+
+typedef struct struct_pth {
+	char *hostorip;
+	int port;
+	
+}struct_pth;
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -418,9 +425,11 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 
 ////////////////////////////////////////////////////////////////////////////
 
-bool srv_rcv( char* host, int port)
+bool srv_rcv(void* ipport)
 {
-  
+  struct_pth* arg = (struct_pth*)ipport;
+  int port = arg->port;
+  char* host = arg->hostorip;
   int sock, cltsck, rcved,i, j;
   char buff[8192];
   XDR xdrs;

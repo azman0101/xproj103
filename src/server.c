@@ -50,18 +50,15 @@
 
 int main(int argc,char* argv[])
 {
-    
-const char format[]="%6lu %6lu %2u\n";
-struct_if** ipaddress;
-struct_cpu* cpuinfo;
+
 
 int i = 0;
-ipaddress = malloc(sizeof(struct_if*));
-cpuinfo = calloc(1, sizeof(struct_cpu));
 char ch = ' ';                   /* service variables */
 int long_opt_index = 0;
 int longval = 0, port = 5333, server_mode = 0;
 char *host_or_ip = NULL;
+
+struct_pth ipport;
 
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
         { "addr", 1, &longval, 'a' },      /* --addr ou -a  */
@@ -76,7 +73,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
        switch (ch) {
            case 'a': 
 	       if (!isIpAddress(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
-               host_or_ip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
+               ipport.hostorip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
                printf("Option --addr active sur interface %s.\n", host_or_ip);
                break;
            case 's':
@@ -93,16 +90,17 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                break;
            case 'p':
 	     /* 'p' et '--port' donne le port d'écoute et doit être compris entre 1 et 65535 */
-               port = argtoport(optarg);         
+               ipport.port = argtoport(optarg);         
                break;
            case 0:     
                      /* branchement utilisé pour les paramètres long */
                switch (longval) {
 		   case 'a':
                        /* ''a' et '--addr' indique l'hote à contacter par son IP ou son nom.  */
-                       host_or_ip = optarg;
-                       printf("Option --addr active sur interface %s.\n", host_or_ip);
-                       break;
+                      if (!isIpAddress(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
+		      ipport.hostorip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
+		      printf("Option --addr active sur interface %s.\n", host_or_ip);
+                      break;
 		   case 's':
 
 			server_mode = 1;
@@ -117,7 +115,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        break;
                    case 'p':
                        /* 'p' et '--port' donne le port d'écoute et doit être compris entre 1 et 65535 */
-                       port = argtoport(optarg);
+                       ipport.port = argtoport(optarg);
                       
                        break;
                    /* there's no default here */
@@ -145,37 +143,19 @@ if (server_mode == 1) {
     sigaction(SIGINT, &a, NULL);
     sigaction(SIGTERM, &a, NULL);
     
-    if (pthread_create(&th1, NULL, srv_rcv, host_or_ip, port) <0 ) {
+    if (pthread_create(&th1, NULL, srv_rcv, (void *)&ipport) <0 ) {
 	fprintf(stderr, "thread lancé\n");
     }
-    
+       for (i=0; i < 10000; i++) {
+	printf("Main loop: %d\n", i);
+	sleep(1);
+    }
     (void)pthread_join(th1, &ret);
-    //srv_rcv(host_or_ip, port);
-
+    
+ 
     exit(EXIT_SUCCESS);
 }
 
-ip_get(ipaddress);
-
-cpu_get(cpuinfo);
-
-//TODO: fonction free pour les structures struct_if struct_cpu
-
-for ( i = 0; ipaddress[i] != NULL; i++ ) {
-  
-printf("<%s>  %s\n", ipaddress[i]->ip, ipaddress[i]->name);
-  
-}
-printf(format, unitConvert(cpuinfo->free_mem), unitConvert(cpuinfo->total_mem), (unsigned) (cpuinfo->cpu_use));
-
-if ((ipaddress != NULL) && (cpuinfo != NULL))
-{
-  // TODO: reflechir à l'idée de création d'un thread pour envoyer les données
-  Clt_snd(ipaddress, cpuinfo, host_or_ip, port);
-  
-}
-free(cpuinfo);
-free_ipaddress(ipaddress);
 exit(EXIT_SUCCESS);
 
 }
