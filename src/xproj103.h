@@ -70,7 +70,7 @@ __sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *vide)
 {
 
   struct sigaction rien, ancien;
-  
+ 
   printf("SIG: %d\n", num_sig);
   
   switch(num_sig) {
@@ -91,11 +91,12 @@ __sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *vide)
     break;
     
     case SIGINT:
-      
+    
     //break;
     
     case SIGTERM:
-	//s'occuper de la sortie standard 
+	//s'occuper de la sortie standard afin d'éviter l'affichage du ^C
+	close(STDOUT_FILENO);
 	printf("\tArrêt du serveur...\n");
 	exit(EXIT_SUCCESS);
     break;

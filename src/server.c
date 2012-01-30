@@ -142,7 +142,8 @@ if (server_mode == 1) {
     sigaction(SIGTSTP, &a, NULL);
     sigaction(SIGINT, &a, NULL);
     sigaction(SIGTERM, &a, NULL);
-    
+   
+
     if (pthread_create(&th1, NULL, srv_rcv, (void *)&ipport) <0 ) {
 	fprintf(stderr, "thread lancé\n");
     }
@@ -150,6 +151,8 @@ if (server_mode == 1) {
 	printf("Main loop: %d\n", i);
 	sleep(1);
     }
+    
+   // srv_handle_rcv_data();
     (void)pthread_join(th1, &ret);
     
  
