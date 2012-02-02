@@ -29,6 +29,7 @@
 #include <string.h>
 #include <pthread.h>
 
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -147,7 +148,8 @@ if (server_mode == 1) {
     if (pthread_create(&th1, NULL, srv_rcv, (void *)&ipport) <0 ) {
 	fprintf(stderr, "thread lancé\n");
     }
-       for (i=0; i < 10000; i++) {
+    
+    for (i=0; i < 10000; i++) {
 	printf("Main loop: %d\n", i);
 	sleep(1);
     }

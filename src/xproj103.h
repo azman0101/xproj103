@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <signal.h>
+#include <syslog.h>
 
 static unsigned long dataUnit=1024;
 
@@ -137,6 +138,15 @@ void free_ipaddress (struct_if** tofree)
  
 }
 
+
+void log_ip_cpu(struct_cpu* cpu, struct_if* ip)
+{
+  char format[] = "IP: %s Interface: %s, CPU Usage %d, Total Mem: %d, Free Mem: %d\n";
+  openlog("audit", LOG_PID, LOG_DAEMON);
+  syslog(LOG_INFO, format,  ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
+  closelog();
+  
+}
 
 /* Code inspiré de l'exemple du man getifaddrs */
 struct_if** ip_get(struct_if **ip_array)
@@ -517,13 +527,15 @@ bool srv_rcv(void* ipport)
 	     { 
 	       if (!isIpAddress(if_rcv_array[j]->ip)) break;
 	       printf("Interface: %s\n", if_rcv_array[j]->name);
-	       printf("IP: <%s>\n", if_rcv_array[j]->ip);	     
+	       printf("IP: <%s>\n", if_rcv_array[j]->ip);
+	       log_ip_cpu(cpu_rcv_array[i], if_rcv_array[j]);
 	       j++;
 	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
 	      }
 	      free(if_rcv_array[j]); // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 	 
 	      if_rcv_array[j] = NULL;
-	    close(cltsck);
+	      close(cltsck);
+	     
 	   i++;
   }
   free(cpu_rcv_array);
