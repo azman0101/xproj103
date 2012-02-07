@@ -75,7 +75,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
            case 'a': 
 	       if (!isIpAddress(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
                ipport.hostorip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
-               printf("Option --addr active sur interface %s.\n", host_or_ip);
+               printf("Option --addr active sur interface %s.\n", ipport.hostorip);
                break;
            case 's':
 
@@ -100,7 +100,7 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                        /* ''a' et '--addr' indique l'hote à contacter par son IP ou son nom.  */
                       if (!isIpAddress(optarg)) { printf("Erreur: L'adresse passée n'est pas une IPv4.\n"); exit(EXIT_FAILURE) ; }
 		      ipport.hostorip = optarg; /* 'a' et '--addr' indique l'hote à contacter par son IP ou son nom. */
-		      printf("Option --addr active sur interface %s.\n", host_or_ip);
+		      printf("Option --addr active sur interface %s.\n",  ipport.hostorip);
                       break;
 		   case 's':
 
@@ -134,9 +134,10 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
 
 if (server_mode == 1) {
     struct sigaction a;
-    pthread_t th1, th2;
+    pthread_t th1;
     void* ret;
     a.sa_handler = (__sighandler_t) xp_sighandler;
+    a.sa_flags =  0;
     sigemptyset(&a.sa_mask);
     
     
@@ -146,7 +147,7 @@ if (server_mode == 1) {
    
 
     if (pthread_create(&th1, NULL, srv_rcv, (void *)&ipport) <0 ) {
-	fprintf(stderr, "thread lancé\n");
+	fprintf(stderr, "thread serveur erreur\n");
     }
     
     for (i=0; i < 10000; i++) {

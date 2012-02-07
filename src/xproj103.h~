@@ -5,6 +5,9 @@
 #include <sys/socket.h>
 #include <signal.h>
 #include <syslog.h>
+#include <pthread.h>
+
+pthread_mutex_t ifcpu_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static unsigned long dataUnit=1024;
 
@@ -29,6 +32,14 @@ typedef struct struct_cpu {
 }struct_cpu;
 ////////////////////////////////////////////////////////////////////////////
 
+typedef struct struct_ifcpu {
+	struct_cpu *cpu;
+	struct_if **interface;
+}struct_ifcpu;
+
+struct_ifcpu* ifcpu_rcv_array[10];
+
+////////////////////////////////////////////////////////////////////////////
 typedef struct struct_pth {
 	char *hostorip;
 	int port;
@@ -139,7 +150,7 @@ void free_ipaddress (struct_if** tofree)
 }
 
 
-void log_ip_cpu(struct_cpu* cpu, struct_if* ip)
+void syslog_ip_cpu(struct_cpu* cpu, struct_if* ip)
 {
   char format[] = "IP: %s Interface: %s, CPU Usage %d, Total Mem: %d, Free Mem: %d\n";
   openlog("audit", LOG_PID, LOG_DAEMON);
@@ -327,7 +338,7 @@ int xdr_if(XDR* xdrs, struct_if* ifstruc)
   long unsigned int lenip, lenname;
    if (xdrs->x_op == XDR_DECODE) // (xdrs->x_op == XDR_DECODE) ? ...
     {
-        //if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
+        if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
         ifstruc->name = calloc(1, 1024);
 	ifstruc->ip = calloc(1, 1024);
 	lenname = 1024;
@@ -399,7 +410,7 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   // Si la connection échoue.
   if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) 
   {
-    free(cpu_array);
+    //free(cpu_array);
     free_ipaddress(if_array);
    
     perror("connect()");
@@ -445,9 +456,12 @@ bool srv_rcv(void* ipport)
   char buff[8192];
   XDR xdrs;
   struct_if** if_rcv_array;
-  struct_cpu** cpu_rcv_array;
+  pthread_t th2;
+  void* ret;
+    
   struct sockaddr_in srv_sin = { 0 }, clt_sin =  { 0 }; 
   sock = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
+
   if (sock == -1)
   {
 	perror("socket()");
@@ -474,32 +488,33 @@ bool srv_rcv(void* ipport)
     perror("listen()");
     exit(errno);
   }
-   if ( cpu_rcv_array == NULL)
-      cpu_rcv_array = malloc(sizeof(struct_cpu*));
+//   if ( cpu_rcv_array == NULL)
+//      cpu_rcv_array = (struct_cpu*)calloc(1, sizeof(struct_cpu*));
    
-   if ( cpu_rcv_array == NULL) {
-      perror("cpu_rcv_array memory allocation");
-      exit(EXIT_FAILURE);
-   }
+ //  if ( cpu_rcv_array == NULL) {
+ //     perror("cpu_rcv_array memory allocation");
+ //     exit(EXIT_FAILURE);
+ //  }
    if ( if_rcv_array == NULL)
-      if_rcv_array = malloc(sizeof(struct_if*));
+       if_rcv_array = (struct_if**)malloc(sizeof(struct_if**));
    
    if ( if_rcv_array == NULL) {
       perror("if_rcv_array memory allocation");
       exit(EXIT_FAILURE);
    }
- 	/* Run until cancelled */
-	
+
+//  if_rcv_array[0] = calloc(1, sizeof(struct_if));
   j = 0;
   i = 0;
+  /* Run until cancelled */
   for (;;) {
            unsigned int clientlen = sizeof(clt_sin);
-	 //  if (cpu_rcv_array[i] == NULL)
-	//   printf("0x%X\n", cpu_rcv_array[i]);
-	   cpu_rcv_array[i] = calloc(1, sizeof(struct_cpu));
-	   if (if_rcv_array[j] == NULL)
-		if_rcv_array[j] = calloc(1, sizeof(struct_if));
-	   	  
+	
+	   ifcpu_rcv_array[i] = (struct_ifcpu*) malloc(sizeof(struct_ifcpu));
+	   ifcpu_rcv_array[i]->cpu = (struct_cpu*) malloc(sizeof(struct_cpu));				//   printf("0x%X\n", cpu_rcv_array[i]);	
+	   ifcpu_rcv_array[i]->interface = if_rcv_array;
+	   ifcpu_rcv_array[i]->interface[j] = calloc(1, sizeof(struct_if));
+
            /* Wait for client connection */
            if ((cltsck = accept(sock, (struct sockaddr *)&clt_sin, &clientlen)) < 0) 
 	   {
@@ -514,32 +529,49 @@ bool srv_rcv(void* ipport)
 		 exit(errno);
 	   }
 	   
-	     xdrmem_create(&xdrs, buff, sizeof(buff), XDR_DECODE);
+	   if (pthread_create(&th2, NULL, parser_xdr, (void *)buff) <0 ) {
+		 fprintf(stderr, "thread parser XDR erreur, \n");
+	   }
+    
+	    // Creation d'un "parser" XDR afin de reconstruire les données reçues dans buff
+	   xdrmem_create(&xdrs, buff, sizeof(buff), XDR_DECODE);
 	     
-	     xdr_cpu(&xdrs, cpu_rcv_array[i]);
-
-	     printf("CPU: %lu\n", (long unsigned)cpu_rcv_array[i]->cpu_use);
-	     printf("FREE MEM: %lu\n", cpu_rcv_array[i]->free_mem);
-	     printf("FREE TOT: %lu\n", cpu_rcv_array[i]->total_mem);
+	   xdr_cpu(&xdrs, ifcpu_rcv_array[i]->cpu);
+	    
+	     
+	   printf("CPU: %lu\n", (long unsigned)ifcpu_rcv_array[i]->cpu->cpu_use);
+	   printf("FREE MEM: %lu\n", ifcpu_rcv_array[i]->cpu->free_mem);
+	   printf("FREE TOT: %lu\n", ifcpu_rcv_array[i]->cpu->total_mem);
 	     
 	     	
-	     while (xdr_if(&xdrs, if_rcv_array[j]))
+	     while (xdr_if(&xdrs, ifcpu_rcv_array[i]->interface[j]))
 	     { 
 	       if (!isIpAddress(if_rcv_array[j]->ip)) break;
 	       printf("Interface: %s\n", if_rcv_array[j]->name);
 	       printf("IP: <%s>\n", if_rcv_array[j]->ip);
-	       log_ip_cpu(cpu_rcv_array[i], if_rcv_array[j]);
+	       
+	      // syslog_ip_cpu(cpu_rcv_array[i], if_rcv_array[j]);
 	       j++;
 	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
 	      }
-	      free(if_rcv_array[j]); // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 	 
-	      if_rcv_array[j] = NULL;
+	      
 	      close(cltsck);
 	     
 	   i++;
   }
-  free(cpu_rcv_array);
-  free_ipaddress(if_rcv_array);          
+  
+  // portion de code n'est jamais atteinte car les seules sorties son les exit(errno) en cas d'erreur et le SIGINT.
+  // Dans les deux cas, la fin du programme ce fera, aucun besoin de gérer les fuites car le noyau reclamera toute la memoire allouée au processus.
+  // on efface la dernière allocation nécesseraiement vide car if_rcv_array[j] est préallouer à la j-1 eme itération avant la sortie de bloucle. 	 
+
+//  free(cpu_rcv_array);
+//  free_ipaddress(if_rcv_array);          
  
   return false;
+}
+
+
+bool parser_xdr(void* buffer_xdr)
+{
+  
 }

@@ -52,10 +52,10 @@ int main(int argc,char* argv[])
     
 const char format[]="%6lu %6lu %2u\n";
 struct_if** ipaddress;
-struct_cpu* cpuinfo;
+struct_cpu cpuinfo = { 0 };
 int i = 0;
 ipaddress = malloc(sizeof(struct_if*));
-cpuinfo = calloc(1, sizeof(struct_cpu));
+//cpuinfo = calloc(1, sizeof(struct_cpu));
 char ch = ' ';                   /* service variables */
 int long_opt_index = 0;
 int longval = 0, port = 0, server_mode = 0;
@@ -143,7 +143,7 @@ if (server_mode == 1) {
 
 ip_get(ipaddress);
 
-cpu_get(cpuinfo);
+cpu_get(&cpuinfo);
 
 //TODO: fonction free pour les structures struct_if struct_cpu
 
@@ -152,15 +152,15 @@ for ( i = 0; ipaddress[i] != NULL; i++ ) {
 printf("<%s>  %s\n", ipaddress[i]->ip, ipaddress[i]->name);
   
 }
-printf(format, unitConvert(cpuinfo->free_mem), unitConvert(cpuinfo->total_mem), (unsigned) (cpuinfo->cpu_use));
+printf(format, unitConvert((&cpuinfo)->free_mem), unitConvert((&cpuinfo)->total_mem), (unsigned) ((&cpuinfo)->cpu_use));
 
-if ((ipaddress != NULL) && (cpuinfo != NULL))
+if ((ipaddress != NULL) && (&cpuinfo != NULL))
 {
   // TODO: reflechir à l'idée de création d'un thread pour envoyer les données
-  Clt_snd(ipaddress, cpuinfo, host_or_ip, port);
+  Clt_snd(ipaddress, &cpuinfo, host_or_ip, port);
   
 }
-free(cpuinfo);
+//free(cpuinfo);
 free_ipaddress(ipaddress);
 exit(EXIT_SUCCESS);
 
