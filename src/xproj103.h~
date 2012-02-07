@@ -1,13 +1,15 @@
 #define VMSTAT        0
 #define SLABSTAT      0x00000004
-#define BUFFSIZE      (64*1024) 
+#define BUFFERSIZE      8192
+
 #include <string.h>
 #include <sys/socket.h>
 #include <signal.h>
 #include <syslog.h>
 #include <pthread.h>
 
-pthread_mutex_t ifcpu_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t buff_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  buff_cond = PTHREAD_COND_INITIALIZER;
 
 static unsigned long dataUnit=1024;
 
@@ -38,6 +40,7 @@ typedef struct struct_ifcpu {
 }struct_ifcpu;
 
 struct_ifcpu* ifcpu_rcv_array[10];
+char buff[BUFFERSIZE];
 
 ////////////////////////////////////////////////////////////////////////////
 typedef struct struct_pth {
@@ -338,7 +341,7 @@ int xdr_if(XDR* xdrs, struct_if* ifstruc)
   long unsigned int lenip, lenname;
    if (xdrs->x_op == XDR_DECODE) // (xdrs->x_op == XDR_DECODE) ? ...
     {
-        if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
+       // if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
         ifstruc->name = calloc(1, 1024);
 	ifstruc->ip = calloc(1, 1024);
 	lenname = 1024;
@@ -356,7 +359,7 @@ int xdr_if(XDR* xdrs, struct_if* ifstruc)
      return 1;
    } else
    {   
-        //desalloue la memoire alloué à ip et name si le chemin 0 est empreinté.
+        //desalloue la memoire alloué à ip et name si le chemin 0 est empreinté, c à d qu'aucune données n'est récupéré dans le buffer_xdr.
      free(ifstruc->name);
      ifstruc->name = NULL;
      free(ifstruc->ip);
@@ -381,11 +384,11 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 {
   int sock, rcved, rcvlen,i;
   XDR xdrs;
-  char buf[8192];
+  char buf[BUFFERSIZE];
   struct hostent *hostinfo =  { 0 };
   hostinfo = gethostbyname(host);
   
-  memset(buf, 0, 8192);
+  memset(buf, 0, BUFFERSIZE);
   // Si l'initialisation de la structure hostinfo échoue.
   if (hostinfo == NULL)
   {
@@ -447,14 +450,54 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 
 ////////////////////////////////////////////////////////////////////////////
 
+bool parser_xdr(void* buffer_xdr)
+{
+  
+	  int x, y = 0;
+	  XDR xdrs;
+	  for (x = 0;;x++) {
+	    
+	      pthread_mutex_lock(&buff_mutex);
+	      printf("Mutex locker par parser\n");
+
+	      // Creation d'un "parser" XDR afin de reconstruire les données reçues dans buff
+	      xdrmem_create(&xdrs, buffer_xdr, BUFFERSIZE, XDR_DECODE);
+		
+	      xdr_cpu(&xdrs, ifcpu_rcv_array[x]->cpu);
+		
+		
+	      printf("CPU: %lu\n", (long unsigned)ifcpu_rcv_array[x]->cpu->cpu_use);
+	      printf("FREE MEM: %lu\n", ifcpu_rcv_array[x]->cpu->free_mem);
+	      printf("FREE TOT: %lu\n", ifcpu_rcv_array[x]->cpu->total_mem);
+		
+		    
+	      while (xdr_if(&xdrs, ifcpu_rcv_array[x]->interface[y]))
+	      { 
+		  if (!isIpAddress(ifcpu_rcv_array[x]->interface[y]->ip)) break;
+		  printf("Interface: %s\n", ifcpu_rcv_array[x]->interface[y]->name);
+		  printf("IP: <%s>\n", ifcpu_rcv_array[x]->interface[y]->ip);
+		  
+		  syslog_ip_cpu(ifcpu_rcv_array[x]->cpu, ifcpu_rcv_array[x]->interface[y]);
+		  y++;
+		  ifcpu_rcv_array[x]->interface[y] = calloc(1, sizeof(struct_if));
+	      }
+	      pthread_mutex_unlock(&buff_mutex);
+	      printf("Mutex unlocker par parser\n");
+
+	      xdr_destroy(&xdrs);
+	    
+	  }
+}
+
+////////////////////////////////////////////////////////////////////////////
+
 bool srv_rcv(void* ipport)
 {
   struct_pth* arg = (struct_pth*)ipport;
   int port = arg->port;
   char* host = arg->hostorip;
   int sock, cltsck, rcved,i, j;
-  char buff[8192];
-  XDR xdrs;
+
   struct_if** if_rcv_array;
   pthread_t th2;
   void* ret;
@@ -522,38 +565,21 @@ bool srv_rcv(void* ipport)
 		 exit(errno);
            }
            fprintf(stdout, "Client connected: %s\n", inet_ntoa(clt_sin.sin_addr));
-          
-	   if (( rcved = recv( cltsck, buff, 8192, 0)) < 0)
+           
+	   pthread_mutex_lock(&buff_mutex);
+	   if (( rcved = recv( cltsck, buff, BUFFERSIZE, 0)) < 0)
 	   {
 		 perror("recv()");
 		 exit(errno);
 	   }
+	   pthread_mutex_unlock(&buff_mutex);
 	   
-	   if (pthread_create(&th2, NULL, parser_xdr, (void *)buff) <0 ) {
-		 fprintf(stderr, "thread parser XDR erreur, \n");
-	   }
-    
-	    // Creation d'un "parser" XDR afin de reconstruire les données reçues dans buff
-	   xdrmem_create(&xdrs, buff, sizeof(buff), XDR_DECODE);
-	     
-	   xdr_cpu(&xdrs, ifcpu_rcv_array[i]->cpu);
-	    
-	     
-	   printf("CPU: %lu\n", (long unsigned)ifcpu_rcv_array[i]->cpu->cpu_use);
-	   printf("FREE MEM: %lu\n", ifcpu_rcv_array[i]->cpu->free_mem);
-	   printf("FREE TOT: %lu\n", ifcpu_rcv_array[i]->cpu->total_mem);
-	     
-	     	
-	     while (xdr_if(&xdrs, ifcpu_rcv_array[i]->interface[j]))
-	     { 
-	       if (!isIpAddress(if_rcv_array[j]->ip)) break;
-	       printf("Interface: %s\n", if_rcv_array[j]->name);
-	       printf("IP: <%s>\n", if_rcv_array[j]->ip);
-	       
-	      // syslog_ip_cpu(cpu_rcv_array[i], if_rcv_array[j]);
-	       j++;
-	       if_rcv_array[j] = calloc(1, sizeof(struct_if));
+	   if (th2 == 0) {
+	      if (pthread_create(&th2, NULL, parser_xdr, (void *)buff) <0 ) {
+		    fprintf(stderr, "thread parser XDR erreur, \n");
 	      }
+	   }
+	
 	      
 	      close(cltsck);
 	     
@@ -571,7 +597,3 @@ bool srv_rcv(void* ipport)
 }
 
 
-bool parser_xdr(void* buffer_xdr)
-{
-  
-}

@@ -151,7 +151,7 @@ if (server_mode == 1) {
     }
     
     for (i=0; i < 10000; i++) {
-	printf("Main loop: %d\n", i);
+	//printf("Main loop: %d\n", i);
 	sleep(1);
     }
     
