@@ -1,6 +1,7 @@
 #define VMSTAT        0
 #define SLABSTAT      0x00000004
 #define BUFFERSIZE      8192
+#define IFCPUSIZE	10
 
 #include <string.h>
 #include <sys/socket.h>
@@ -37,9 +38,10 @@ typedef struct struct_cpu {
 typedef struct struct_ifcpu {
 	struct_cpu *cpu;
 	struct_if **interface;
+	char* buff_a_decoder;
 }struct_ifcpu;
 
-struct_ifcpu* ifcpu_rcv_array[10];
+struct_ifcpu* ifcpu_rcv_array[IFCPUSIZE];
 char buff[BUFFERSIZE];
 
 ////////////////////////////////////////////////////////////////////////////
@@ -450,19 +452,24 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 
 ////////////////////////////////////////////////////////////////////////////
 
-bool parser_xdr(void* buffer_xdr)
+void parser_xdr(void* rien)
 {
   
 	  int x, y = 0;
 	  XDR xdrs;
+	  struct_if** if_rcv_array;	  
+
 	  for (x = 0;;x++) {
 	    
 	      pthread_mutex_lock(&buff_mutex);
 	      printf("Mutex locker par parser\n");
-
+	      	      
+	      	   
+	     
 	      // Creation d'un "parser" XDR afin de reconstruire les données reçues dans buff
-	      xdrmem_create(&xdrs, buffer_xdr, BUFFERSIZE, XDR_DECODE);
-		
+	      xdrmem_create(&xdrs, ifcpu_rcv_array[x]->buff_a_decoder, BUFFERSIZE, XDR_DECODE);
+	     
+	    
 	      xdr_cpu(&xdrs, ifcpu_rcv_array[x]->cpu);
 		
 		
@@ -470,7 +477,7 @@ bool parser_xdr(void* buffer_xdr)
 	      printf("FREE MEM: %lu\n", ifcpu_rcv_array[x]->cpu->free_mem);
 	      printf("FREE TOT: %lu\n", ifcpu_rcv_array[x]->cpu->total_mem);
 		
-		    
+	      
 	      while (xdr_if(&xdrs, ifcpu_rcv_array[x]->interface[y]))
 	      { 
 		  if (!isIpAddress(ifcpu_rcv_array[x]->interface[y]->ip)) break;
@@ -481,12 +488,35 @@ bool parser_xdr(void* buffer_xdr)
 		  y++;
 		  ifcpu_rcv_array[x]->interface[y] = calloc(1, sizeof(struct_if));
 	      }
-	      pthread_mutex_unlock(&buff_mutex);
-	      printf("Mutex UNlocker par parser\n");
+	      y = 0;
+	      
+	      if (x > IFCPUSIZE) {
+		x = 0;
+		
+	      }
 
 	      xdr_destroy(&xdrs);
+	      pthread_cond_wait(&buff_cond, &buff_mutex);
+	      pthread_mutex_unlock(&buff_mutex);
+	      printf("Mutex UNlocker par parser\n");
 	    
 	  }
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+void alloc_ifcpu(void* rien)
+{
+	int a, b;
+	for (a = 0; a < IFCPUSIZE ;a++) {	  
+
+		  ifcpu_rcv_array[a] = (struct_ifcpu*) malloc(sizeof(struct_ifcpu));		
+		  ifcpu_rcv_array[a]->cpu = (struct_cpu*) malloc(sizeof(struct_cpu));				//   printf("0x%X\n", cpu_rcv_array[i]);			  
+		  ifcpu_rcv_array[a]->interface = (struct_if**)malloc(sizeof(struct_if**));;
+		  // Allocation de la premiere structure struct_if (On sait qu'il y aura au moins une interface)
+		  ifcpu_rcv_array[a]->interface[0] = calloc(1, sizeof(struct_if));
+		  
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -498,8 +528,7 @@ bool srv_rcv(void* ipport)
   char* host = arg->hostorip;
   int sock, cltsck, rcved,i, j;
 
-  struct_if** if_rcv_array;
-  pthread_t th2;
+  pthread_t th2 = 0, th_alloc;
   void* ret;
     
   struct sockaddr_in srv_sin = { 0 }, clt_sin =  { 0 }; 
@@ -531,32 +560,14 @@ bool srv_rcv(void* ipport)
     perror("listen()");
     exit(errno);
   }
-//   if ( cpu_rcv_array == NULL)
-//      cpu_rcv_array = (struct_cpu*)calloc(1, sizeof(struct_cpu*));
-   
- //  if ( cpu_rcv_array == NULL) {
- //     perror("cpu_rcv_array memory allocation");
- //     exit(EXIT_FAILURE);
- //  }
-   if ( if_rcv_array == NULL)
-       if_rcv_array = (struct_if**)malloc(sizeof(struct_if**));
-   
-   if ( if_rcv_array == NULL) {
-      perror("if_rcv_array memory allocation");
-      exit(EXIT_FAILURE);
-   }
-
-//  if_rcv_array[0] = calloc(1, sizeof(struct_if));
-  j = 0;
+  
+  if (pthread_create(&th_alloc, NULL, alloc_ifcpu, NULL) <0 ) {
+		    fprintf(stderr, "thread allocation erreur, \n");
+  }
   i = 0;
   /* Run until cancelled */
   for (;;) {
            unsigned int clientlen = sizeof(clt_sin);
-	
-	   ifcpu_rcv_array[i] = (struct_ifcpu*) malloc(sizeof(struct_ifcpu));
-	   ifcpu_rcv_array[i]->cpu = (struct_cpu*) malloc(sizeof(struct_cpu));				//   printf("0x%X\n", cpu_rcv_array[i]);	
-	   ifcpu_rcv_array[i]->interface = if_rcv_array;
-	   ifcpu_rcv_array[i]->interface[j] = calloc(1, sizeof(struct_if));
 
            /* Wait for client connection */
            if ((cltsck = accept(sock, (struct sockaddr *)&clt_sin, &clientlen)) < 0) 
@@ -566,18 +577,29 @@ bool srv_rcv(void* ipport)
            }
            fprintf(stdout, "Client connected: %s\n", inet_ntoa(clt_sin.sin_addr));
            
-	   pthread_mutex_lock(&buff_mutex);
-	   printf("Mutex locker par serveur\n");
+	  
 	   if (( rcved = recv( cltsck, buff, BUFFERSIZE, 0)) < 0)
 	   {
 		 perror("recv()");
 		 exit(errno);
 	   }
+	   
+	   
+	   pthread_mutex_lock(&buff_mutex);
+	   printf("Mutex locker par serveur\n");
+	   
+	   ifcpu_rcv_array[i]->buff_a_decoder = calloc(1, BUFFERSIZE*sizeof(char));
+	   memcpy(ifcpu_rcv_array[i]->buff_a_decoder, buff, BUFFERSIZE);
+	   	   
+	   pthread_cond_signal(&buff_cond);
+
 	   pthread_mutex_unlock(&buff_mutex);
 	   printf("Mutex UNlocker par serveur\n");
 
+	   
+	   
 	   if (th2 == 0) {
-	      if (pthread_create(&th2, NULL, parser_xdr, (void *)buff) <0 ) {
+	      if (pthread_create(&th2, NULL, parser_xdr, NULL) <0 ) {
 		    fprintf(stderr, "thread parser XDR erreur, \n");
 	      }
 	   }
