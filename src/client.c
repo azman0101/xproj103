@@ -122,7 +122,7 @@ for (;;) {
       {
 	
 	Clt_snd(ipaddress, &cpuinfo, host_or_ip, port);
-	sleep(1);
+	sleep(INTERVAL);
 	
       }
 }

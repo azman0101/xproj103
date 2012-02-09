@@ -2,7 +2,7 @@
 #define SLABSTAT      0x00000004
 #define BUFFERSIZE      8192
 #define IFCPUSIZE	10
-
+#define INTERVAL	(60*45)
 #include <config.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -205,7 +205,7 @@ void syslog_ip_cpu(struct_cpu* cpu, struct_if* ip)
  
    }
   openlog("audit", LOG_PID, LOG_DAEMON);
-  syslog(LOG_INFO, format,  ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
+  syslog(LOG_INFO, format,  chartime, ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
   fprintf(fd, format, chartime,  ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
   closelog();
   fclose(fd);
@@ -288,7 +288,7 @@ struct_if** ip_get(struct_if **ip_array)
         }
     }
     //printf("\taddress: <%s>\n interface: %s\n", ip_array[0]->ip, ip_array[0]->name);
-    
+    free(ifaddr);
  //   freeifaddrs(ifaddr);
     return ip_array;
 }
@@ -485,17 +485,16 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 	      printf("ip: %s index: %d\n", if_array[i]->ip, i);
 	      xdr_if(&xdrs, if_array[i]);
   }
-  
- // for ( i=0; if_array[i] != NULL; i++ ) {
 
 	if(send(sock,buf, BUFFERSIZE, 0) != BUFFERSIZE)  {
 		
 	    perror("send()");
+	    close(sock);
 	    exit(errno);
 		
-	//}
-	  
-  }
+	}
+  
+  close(sock);
   return false;
 }
 
