@@ -14,36 +14,7 @@
  * GNU Library General Public License for more details.
  * 
  */
-#include <config.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <string.h>
-#include <errno.h>
-#include <getopt.h>
-#include <rpc/xdr.h>
-#include <signal.h>
-#include <sysexits.h>
-#include <stdbool.h>
-#include <string.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <ifaddrs.h>
-
-#include "proc/devname.h"
-#include "proc/wchan.h"
-#include "proc/procps.h"
-#include "proc/readproc.h"
-#include "proc/escape.h"
-#include "proc/sig.h"
-#include "proc/sysinfo.h"
-#include "proc/version.h"
-#include "proc/whattime.h"
 
 #include "xproj103.h"
 

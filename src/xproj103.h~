@@ -3,6 +3,41 @@
 #define BUFFERSIZE      8192
 #define IFCPUSIZE	10
 
+#include <config.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <string.h>
+#include <errno.h>
+#include <getopt.h>
+#include <rpc/xdr.h>
+#include <signal.h>
+#include <sysexits.h>
+#include <stdbool.h>
+#include <string.h>
+#include <pthread.h>
+#include <fcntl.h>
+
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <netdb.h>
+#include <ifaddrs.h>
+
+#include "proc/devname.h"
+#include "proc/wchan.h"
+#include "proc/procps.h"
+#include "proc/readproc.h"
+#include "proc/escape.h"
+#include "proc/sig.h"
+#include "proc/sysinfo.h"
+#include "proc/version.h"
+#include "proc/whattime.h"
+
 #include <string.h>
 #include <sys/socket.h>
 #include <signal.h>
@@ -159,10 +194,19 @@ void free_ipaddress (struct_if** tofree)
 
 void syslog_ip_cpu(struct_cpu* cpu, struct_if* ip)
 {
+  FILE* fd;
+   if ((fd = (FILE*) fopen("/home/azman/audit", "a")) < 0)
+   {
+      	  perror("cannot open or create /home/azman/audit");
+	  exit(errno);
+ 
+   }
   char format[] = "IP: %s Interface: %s, CPU Usage %d, Total Mem: %d, Free Mem: %d\n";
   openlog("audit", LOG_PID, LOG_DAEMON);
   syslog(LOG_INFO, format,  ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
+  fprintf(fd, &format, ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
   closelog();
+  fclose(fd);
   
 }
 
@@ -493,7 +537,7 @@ void parser_xdr(void* rien)
 	      printf("Mutex UNlocker par parser, INDEX: %d\n", x);
 
 	      pthread_mutex_lock(&cond_mutex);
-	   
+	     
 	      pthread_cond_wait(&buff_cond, &cond_mutex);
 
 	      pthread_mutex_unlock(&cond_mutex);
@@ -542,10 +586,8 @@ bool srv_rcv(void* ipport)
   
   srv_sin.sin_family = AF_INET;
   srv_sin.sin_port = htons(port);
-  if ( host == NULL)
-    srv_sin.sin_addr.s_addr = htonl(INADDR_ANY);
-  else
-    srv_sin.sin_addr.s_addr = htonl(INADDR_ANY); // TODO: remplacer par host mais en utilisant la bonne fonction
+  srv_sin.sin_addr.s_addr = htonl(INADDR_ANY);
+  
 
 
   
