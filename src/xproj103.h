@@ -198,7 +198,7 @@ void syslog_ip_cpu(struct_cpu* cpu, struct_if* ip)
   gettimeofday(&time,&zone);
   strftime(chartime, 30, "%d/%m/%Y %T ", localtime(&time.tv_sec));
   FILE* fd;
-   if ((fd = (FILE*) fopen("/home/azman/audit", "a")) < 0)
+   if ((fd = (FILE*) fopen("/var/log/audit", "a")) < 0)
    {
       	  perror("cannot open or create /home/azman/audit");
 	  exit(errno);
