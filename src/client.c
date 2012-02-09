@@ -32,6 +32,7 @@ int long_opt_index = 0;
 int longval = 0, port = 0, server_mode = 0;
 char *host_or_ip = NULL;
 
+
 struct option long_options[] = {        /* tableau long options. sensible à la casse */
         { "addr", 1, &longval, 'a' },      /* --addr ou -a  */
         { "server", 0, NULL, 's'  },      /* --server ou -s */
@@ -103,33 +104,27 @@ struct option long_options[] = {        /* tableau long options. sensible à la 
                printf("Args Error!\n");
        }
     }
-    
-/*
-if (server_mode == 1) {
+   
+
+for (;;) {
+      ip_get(ipaddress);
+
+      cpu_get(&cpuinfo);
+      for ( i = 0; ipaddress[i] != NULL; i++ ) {
   
-    srv_rcv(host_or_ip, port);
+      printf("<%s>  %s\n", ipaddress[i]->ip, ipaddress[i]->name);
+	
+      }
+      printf(format, unitConvert((&cpuinfo)->free_mem), unitConvert((&cpuinfo)->total_mem), (unsigned) ((&cpuinfo)->cpu_use));
 
-    exit(EXIT_SUCCESS);
-}*/
 
-ip_get(ipaddress);
-
-cpu_get(&cpuinfo);
-
-//TODO: fonction free pour les structures struct_if struct_cpu
-
-for ( i = 0; ipaddress[i] != NULL; i++ ) {
-  
-printf("<%s>  %s\n", ipaddress[i]->ip, ipaddress[i]->name);
-  
-}
-printf(format, unitConvert((&cpuinfo)->free_mem), unitConvert((&cpuinfo)->total_mem), (unsigned) ((&cpuinfo)->cpu_use));
-
-if ((ipaddress != NULL) && (&cpuinfo != NULL))
-{
-  // TODO: reflechir à l'idée de création d'un thread pour envoyer les données
-  Clt_snd(ipaddress, &cpuinfo, host_or_ip, port);
-  
+      if ((ipaddress != NULL) && (&cpuinfo != NULL))
+      {
+	
+	Clt_snd(ipaddress, &cpuinfo, host_or_ip, port);
+	sleep(1);
+	
+      }
 }
 //free(cpuinfo);
 free_ipaddress(ipaddress);

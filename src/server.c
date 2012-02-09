@@ -108,29 +108,17 @@ if (server_mode == 1) {
     a.sa_handler = (__sighandler_t) xp_sighandler;
     a.sa_flags =  0;
     sigemptyset(&a.sa_mask);
-    
-    
+  
     sigaction(SIGTSTP, &a, NULL);
     sigaction(SIGINT, &a, NULL);
     sigaction(SIGTERM, &a, NULL);
-   
-  /*  if (setuid(0) == -1)
-    {
-      perror("Setuid error");
-      exit(errno);
-      
-     }*/
+  //  sigaction(SIGSEGV, &a, NULL);
+
 
     if (pthread_create(&th1, NULL, srv_rcv, (void *)&ipport) <0 ) {
 	fprintf(stderr, "thread serveur erreur\n");
     }
-    
-    for (i=0; i < 10000; i++) {
-	//printf("Main loop: %d\n", i);
-	sleep(1);
-    }
-    
-   // srv_handle_rcv_data();
+   
     (void)pthread_join(th1, &ret);
     
  

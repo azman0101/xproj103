@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>
@@ -18,6 +17,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <fcntl.h>
+
+#include <sys/time.h>
 
 
 #include <sys/socket.h>
@@ -80,6 +81,7 @@ typedef struct struct_ifcpu {
 
 struct_ifcpu* ifcpu_rcv_array[IFCPUSIZE];
 char buff[BUFFERSIZE];
+int cltsck;
 
 ////////////////////////////////////////////////////////////////////////////
 typedef struct struct_pth {
@@ -124,14 +126,19 @@ __sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *vide)
 {
 
   struct sigaction rien, ancien;
- 
   printf("SIG: %d\n", num_sig);
   
   switch(num_sig) {
     
+    case SIGSEGV:
+      	printf("\t Catch Segmentation error...\n");
+
+      break;
     case SIGTSTP:
+      	
 	printf("\tMise en pause...\n");
-	rien.sa_handler = SIG_DFL;
+	// On rearme le gestionnaire de signaux sur le handler xp_sighandler
+	rien.sa_handler = (__sighandler_t) xp_sighandler;
 	rien.sa_flags = 0;
 	sigemptyset(&rien.sa_mask);
 	sigaction(SIGTSTP, &rien, &ancien);
@@ -145,31 +152,19 @@ __sighandler_t xp_sighandler(int num_sig, struct siginfo *info, void *vide)
     break;
     
     case SIGINT:
-    
+ 
     //break;
     
     case SIGTERM:
 	//s'occuper de la sortie standard afin d'éviter l'affichage du ^C
-	close(STDOUT_FILENO);
+	
 	printf("\tArrêt du serveur...\n");
+	printf("\tFermeture du socket...\n");
+	close(cltsck);
 	exit(EXIT_SUCCESS);
     break;
     }
 }
-
-/*
-char *safe_strdup (const char *s)
-{
-	char *p;
- 	size_t l;
-    
- 	if (!s || !*s) return 0;
- 	l = strlen (s) + 1;
- 	p = (char *)malloc (l);
- 	memcpy (p, s, l);
- 	return (p);
-}
-*/
 
 void free_ipaddress (struct_if** tofree)
 {
@@ -194,6 +189,14 @@ void free_ipaddress (struct_if** tofree)
 
 void syslog_ip_cpu(struct_cpu* cpu, struct_if* ip)
 {
+  struct timeval time;
+  struct timezone zone;
+  char format[] = "%s IP: %s Interface: %s, CPU Usage %d, Total Mem: %d, Free Mem: %d\n";
+
+  char chartime[30];
+  
+  gettimeofday(&time,&zone);
+  strftime(chartime, 30, "%d/%m/%Y %T ", localtime(&time.tv_sec));
   FILE* fd;
    if ((fd = (FILE*) fopen("/home/azman/audit", "a")) < 0)
    {
@@ -201,10 +204,9 @@ void syslog_ip_cpu(struct_cpu* cpu, struct_if* ip)
 	  exit(errno);
  
    }
-  char format[] = "IP: %s Interface: %s, CPU Usage %d, Total Mem: %d, Free Mem: %d\n";
   openlog("audit", LOG_PID, LOG_DAEMON);
   syslog(LOG_INFO, format,  ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
-  fprintf(fd, &format, ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
+  fprintf(fd, format, chartime,  ip->ip, ip->name, cpu->cpu_use, cpu->total_mem, cpu->free_mem);
   closelog();
   fclose(fd);
   
@@ -287,7 +289,7 @@ struct_if** ip_get(struct_if **ip_array)
     }
     //printf("\taddress: <%s>\n interface: %s\n", ip_array[0]->ip, ip_array[0]->name);
     
-    freeifaddrs(ifaddr);
+ //   freeifaddrs(ifaddr);
     return ip_array;
 }
 
@@ -390,8 +392,12 @@ int xdr_if(XDR* xdrs, struct_if* ifstruc)
    if (xdrs->x_op == XDR_DECODE) // (xdrs->x_op == XDR_DECODE) ? ...
     {
        // if (ifstruc == NULL) ifstruc = calloc(1, sizeof(struct_if));
+        if (ifstruc->name == NULL) {
         ifstruc->name = calloc(1, 1024);
+	}
+	if (ifstruc->ip == NULL) {
 	ifstruc->ip = calloc(1, 1024);
+	} 
 	lenname = 1024;
 	lenip = 1024;
       
@@ -430,7 +436,7 @@ bool xdr_cpu(XDR* xdrs, struct_cpu* cpustruc)
 
 bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
 {
-  int sock, rcved, rcvlen,i;
+  int sock, rcved,i;
   XDR xdrs;
   char buf[BUFFERSIZE];
   struct hostent *hostinfo =  { 0 };
@@ -462,37 +468,34 @@ bool Clt_snd(struct_if** if_array, struct_cpu* cpu_array, char* host, int port)
   if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) 
   {
     //free(cpu_array);
-    free_ipaddress(if_array);
+    //free_ipaddress(if_array);
    
-    perror("connect()");
-    exit(errno);
+    perror("connect() next attempt in 45 min");
+    return false;
   }
-  u_int size = NI_MAXHOST; //TODO: résoudre le probleme de buff fixe.
- // buf = (char*)malloc(size);
-  
+ 
   // Crée un pointeur xdrs en mémoire et l'associe à buf, pour l'encodage
-  xdrmem_create(&xdrs, buf, 4096, XDR_ENCODE);
+  xdrmem_create(&xdrs, buf, BUFFERSIZE, XDR_ENCODE);
   
   // Ajoute la structure cpu_array au buf attaché au pointeur xdrs.
   xdr_cpu(&xdrs, cpu_array);
-  
+
   for ( i=0; if_array[i] != NULL; i++ )
-   {
-	printf("ip: %s index: %d\n", if_array[i]->ip, i);
-	xdr_if(&xdrs, if_array[i]);
-   }
-      
-   
-  for ( i=0; if_array[i] != NULL; i++ ) {
-
-      rcvlen = sizeof(buf);
-      if(send(sock,buf, sizeof(buf), 0) != rcvlen)  {
-	perror("send()");
-	exit(errno);
-      }
-  
+  {
+	      printf("ip: %s index: %d\n", if_array[i]->ip, i);
+	      xdr_if(&xdrs, if_array[i]);
   }
+  
+ // for ( i=0; if_array[i] != NULL; i++ ) {
 
+	if(send(sock,buf, BUFFERSIZE, 0) != BUFFERSIZE)  {
+		
+	    perror("send()");
+	    exit(errno);
+		
+	//}
+	  
+  }
   return false;
 }
 
@@ -527,7 +530,11 @@ void parser_xdr(void* rien)
 		  
 		  syslog_ip_cpu(ifcpu_rcv_array[x]->cpu, ifcpu_rcv_array[x]->interface[y]);
 		  y++;
+		  if( ifcpu_rcv_array[x]->interface[y] == NULL)  {
+		    
 		  ifcpu_rcv_array[x]->interface[y] = calloc(1, sizeof(struct_if));
+		  
+		  }
 	      }
 	      y = 0;
 	      
@@ -570,7 +577,7 @@ bool srv_rcv(void* ipport)
   struct_pth* arg = (struct_pth*)ipport;
   int port = arg->port;
   char* host = arg->hostorip;
-  int sock, cltsck, rcved,i, j;
+  int sock, rcved,i, j;
 
   pthread_t th2 = 0, th_alloc;
   void* ret;
@@ -619,7 +626,6 @@ bool srv_rcv(void* ipport)
            }
            fprintf(stdout, "Client connected: %s\n", inet_ntoa(clt_sin.sin_addr));
            
-	  
 	   if (( rcved = recv( cltsck, buff, BUFFERSIZE, 0)) < 0)
 	   {
 		 perror("recv()");
