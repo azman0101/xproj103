@@ -10,6 +10,8 @@
 #include <pthread.h>
 
 pthread_mutex_t buff_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 pthread_cond_t  buff_cond = PTHREAD_COND_INITIALIZER;
 
 static unsigned long dataUnit=1024;
@@ -458,25 +460,20 @@ void parser_xdr(void* rien)
 	  int x, y = 0;
 	  XDR xdrs;
 	  struct_if** if_rcv_array;	  
-
-	  for (x = 0;;x++) {
+    for (;;) {
+	  for (x = 0;x < IFCPUSIZE;x++) {
 	    
 	      pthread_mutex_lock(&buff_mutex);
 	      printf("Mutex locker par parser\n");
 	      	      
-	      	   
-	     
 	      // Creation d'un "parser" XDR afin de reconstruire les données reçues dans buff
 	      xdrmem_create(&xdrs, ifcpu_rcv_array[x]->buff_a_decoder, BUFFERSIZE, XDR_DECODE);
 	     
-	    
 	      xdr_cpu(&xdrs, ifcpu_rcv_array[x]->cpu);
-		
-		
+			
 	      printf("CPU: %lu\n", (long unsigned)ifcpu_rcv_array[x]->cpu->cpu_use);
 	      printf("FREE MEM: %lu\n", ifcpu_rcv_array[x]->cpu->free_mem);
 	      printf("FREE TOT: %lu\n", ifcpu_rcv_array[x]->cpu->total_mem);
-		
 	      
 	      while (xdr_if(&xdrs, ifcpu_rcv_array[x]->interface[y]))
 	      { 
@@ -490,17 +487,19 @@ void parser_xdr(void* rien)
 	      }
 	      y = 0;
 	      
-	      if (x > IFCPUSIZE) {
-		x = 0;
-		
-	      }
-
 	      xdr_destroy(&xdrs);
-	      pthread_cond_wait(&buff_cond, &buff_mutex);
+	      //pthread_cond_wait(&buff_cond, &buff_mutex);
 	      pthread_mutex_unlock(&buff_mutex);
-	      printf("Mutex UNlocker par parser\n");
+	      printf("Mutex UNlocker par parser, INDEX: %d\n", x);
+
+	      pthread_mutex_lock(&cond_mutex);
+	   
+	      pthread_cond_wait(&buff_cond, &cond_mutex);
+
+	      pthread_mutex_unlock(&cond_mutex);
 	    
 	  }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -515,7 +514,8 @@ void alloc_ifcpu(void* rien)
 		  ifcpu_rcv_array[a]->interface = (struct_if**)malloc(sizeof(struct_if**));;
 		  // Allocation de la premiere structure struct_if (On sait qu'il y aura au moins une interface)
 		  ifcpu_rcv_array[a]->interface[0] = calloc(1, sizeof(struct_if));
-		  
+		  ifcpu_rcv_array[a]->buff_a_decoder = calloc(1, BUFFERSIZE*sizeof(char));
+
 	}
 }
 
@@ -586,17 +586,20 @@ bool srv_rcv(void* ipport)
 	   
 	   
 	   pthread_mutex_lock(&buff_mutex);
-	   printf("Mutex locker par serveur\n");
+	   printf("Mutex locker par serveur: INDEX: %d\n", i);
 	   
-	   ifcpu_rcv_array[i]->buff_a_decoder = calloc(1, BUFFERSIZE*sizeof(char));
 	   memcpy(ifcpu_rcv_array[i]->buff_a_decoder, buff, BUFFERSIZE);
-	   	   
-	   pthread_cond_signal(&buff_cond);
+		   
 
 	   pthread_mutex_unlock(&buff_mutex);
 	   printf("Mutex UNlocker par serveur\n");
-
 	   
+	   pthread_mutex_lock(&cond_mutex);
+	   
+	   pthread_cond_signal(&buff_cond);
+
+	   pthread_mutex_unlock(&cond_mutex);
+
 	   
 	   if (th2 == 0) {
 	      if (pthread_create(&th2, NULL, parser_xdr, NULL) <0 ) {
@@ -607,7 +610,16 @@ bool srv_rcv(void* ipport)
 	      
 	      close(cltsck);
 	     
-	   i++;
+
+	   	i++;
+	   if (i >= IFCPUSIZE) {
+	     	 printf("REINIT INDEX: %d\n", i);
+
+		i = 0;
+	  }
+	
+		
+	   
   }
   
   // portion de code n'est jamais atteinte car les seules sorties son les exit(errno) en cas d'erreur et le SIGINT.
